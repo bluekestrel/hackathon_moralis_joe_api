@@ -1,40 +1,66 @@
+require('dotenv').config;
 const BN = require("bn.js");
+const CLA = require('command-line-args');
+const config = require('./config');
 
-// Config/setup
-const AVAX_RPC =
-  process.env.AVAX_RPC || "https://api.avax.network/ext/bc/C/rpc";
-const AVAX_CHAIN_ID = 43114;
-
-// Number contants
+// number constants
 const BN_1E18 = new BN("1000000000000000000");
 const BN_18 = new BN("18");
 const BN_2 = new BN("2");
 
-// Addresses
-const JOE_ADDRESS = "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd";
-const JOEFACTORY_ADDRESS = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
-const WAVAX_ADDRESS = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
-const XJOE_ADDRESS = "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33";
-const USDC_ADDRESS = "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664";
-const USDT_ADDRESS = "0xc7198437980c041c805A1EDcbA50c1Ce5db95118";
-const WAVAX_USDT_ADDRESS = "0xeD8CBD9F0cE3C6986b22002F03c6475CEb7a6256";
-const WAVAX_USDC_ADDRESS = "0xA389f9430876455C36478DeEa9769B7Ca4E3DDB1";
-const TOTALSUPPLYANDBORROW_ADDRESS =
-  "0x40ae0810EB5148c23Bd0F574DF2Dc4dFD6A81c10";
-
-const TEAM_TREASURY_WALLETS = [
-  "0xaFF90532E2937fF290009521e7e120ed062d4F34", // 1st Team vesting contract
-  "0xFea7879Bf27B4461De9a9b8A03dBcc7f49C52bEa", // 2nd Team vesting contract
-  "0xc13B1C927565C5AF8fcaF9eF7387172c447f6796", // Investor cliff contract
-  "0x66Fb02746d72bC640643FdBa3aEFE9C126f0AA4f", // Treasury wallet
-  "0x15f08E8656FA6205B53819e36dCBeC8f481Da14C", // Team wallet
-  "0x5D3e4C0FE11e0aE4c32F0FF74B4544C49538AC61", // Dev operational wallet
-  "0x381f39231576f52185EDE4b670bc39e9FF2Aab96", // Investor wallet
-  "0xD858eBAa943b4C2fb06BA0Ba8920A132fd2410eE", // Multi-sig wallet
-];
-
 const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+function getNetworkInfo(network) {
+  if (network && config[network]) {
+    // network exists in predefined constants
+    return {
+      AVAX_RPC: process.env.AVAX_MAINNET_RPC || config[network].defaultRPC,
+      AVAX_CHAIN_ID: config[network].chainid,
+    }
+  } else {
+    // network is not defined or is not present in the NETWORKS object, default to Avalanche Mainnet
+    // C-chain
+    return {
+      AVAX_RPC: config.mainnet.defaultRPC,
+      AVAX_CHAIN_ID: config.mainnet.chainid,
+    }
+  }
+}
+
+function getConfigValue(network, value) {
+  if (network && config[network]) {
+    return config[network][value];
+  } else {
+    return config.mainnet[value];
+  }
+}
+
+// setup command-line parsing
+const optionDefinitions = [
+  { name: 'network', alias: 'n', type: String },
+  { name: 'rate-limit', alias: 'l', type: Number }
+];
+const options = CLA(optionDefinitions);
+
+// get network info
+const { AVAX_RPC, AVAX_CHAIN_ID } = getNetworkInfo(options.network);
+
+// get contract addresses
+const {
+  JOE_ADDRESS,
+  JOEFACTORY_ADDRESS,
+  WAVAX_ADDRESS,
+  XJOE_ADDRESS,
+  USDC_ADDRESS,
+  USDT_ADDRESS,
+  WAVAX_USDT_ADDRESS,
+  WAVAX_USDC_ADDRESS,
+  TOTAL_SUPPLY_AND_BORROW_ADDRESS,
+} = getConfigValue(options.network, 'contract_addresses');
+
+// get treasury wallets
+const TEAM_TREASURY_WALLETS = getConfigValue(options.network, 'team_treasury_wallets');
 
 module.exports = {
   AVAX_RPC,
@@ -45,15 +71,13 @@ module.exports = {
   JOE_ADDRESS,
   JOEFACTORY_ADDRESS,
   TEAM_TREASURY_WALLETS,
-  TOTALSUPPLYANDBORROW_ADDRESS,
+  TOTAL_SUPPLY_AND_BORROW_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
   WAVAX_ADDRESS,
   XJOE_ADDRESS,
   WAVAX_USDT_ADDRESS,
   WAVAX_USDC_ADDRESS,
-  TOTALSUPPLYANDBORROW_ADDRESS,
-  TEAM_TREASURY_WALLETS,
   BURN_ADDRESS,
   ZERO_ADDRESS,
 };
