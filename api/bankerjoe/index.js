@@ -4,13 +4,13 @@ const { web3Factory } = require("../../utils/web3");
 const TotalSupplyAndBorrowABI = require("../../abis/TotalSupplyAndBorrowABI.json");
 const {
   AVAX_CHAIN_ID,
-  TOTALSUPPLYANDBORROW_ADDRESS,
+  TOTAL_SUPPLY_AND_BORROW_ADDRESS,
 } = require("../../constants");
 
 const web3 = web3Factory(AVAX_CHAIN_ID);
 const TotalSupplyAndBorrow = new web3.eth.Contract(
   TotalSupplyAndBorrowABI,
-  TOTALSUPPLYANDBORROW_ADDRESS
+  TOTAL_SUPPLY_AND_BORROW_ADDRESS,
 );
 
 class Cache {
