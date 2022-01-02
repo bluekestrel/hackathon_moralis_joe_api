@@ -17,6 +17,7 @@ router.get('/nft/hat', nftHat.infos);
 router.get('/nft/hat/:id', nftHat.infos)
 router.get('/priceavax/:tokenAddress', price.derivedPriceOfToken)
 router.get('/priceusd/:tokenAddress', price.priceOfToken)
+router.get('/lending/list', bankerJoe.getLendingPools) // TODO: all new routes will have a v2 prefixed to the path
 router.get('/lending/supply', bankerJoe.totalSupply)
 router.get('/lending/borrow', bankerJoe.totalBorrow)
 router.get('/', noop);

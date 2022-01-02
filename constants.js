@@ -8,6 +8,7 @@ const BN_1E18 = new BN("1000000000000000000");
 const BN_18 = new BN("18");
 const BN_2 = new BN("2");
 
+// address constants
 const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -28,15 +29,17 @@ function getNetworkInfo(network) {
   }
 }
 
-function getConfigValue(network, value) {
+// given a network and key attempt to look up the corresponding value, if the network name is not
+// found default to using the mainnet config
+function getConfigValue(network, key) {
   if (network && config[network]) {
-    return config[network][value];
+    return config[network][key];
   } else {
-    return config.mainnet[value];
+    return config.mainnet[key];
   }
 }
 
-// setup command-line parsing
+// setup command-line parsing options
 const optionDefinitions = [
   { name: 'network', alias: 'n', type: String },
   { name: 'rate-limit', alias: 'l', type: Number }
@@ -49,14 +52,20 @@ const { AVAX_RPC, AVAX_CHAIN_ID } = getNetworkInfo(options.network);
 // get contract addresses
 const {
   JOE_ADDRESS,
-  JOEFACTORY_ADDRESS,
-  WAVAX_ADDRESS,
   XJOE_ADDRESS,
+  JOEFACTORY_ADDRESS,
+  JOE_ROUTER_ADDRESS,
+  MASTERCHEFV2_ADDRESS,
+  MASTERCHEFV3_ADDRESS,
+  JOETROLLER_ADDRESS,
+  PRICE_ORACLE_ADDRESS,
+  REWARDS_DISTRIBUTOR_ADDRESS,
+  TOTAL_SUPPLY_AND_BORROW_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
+  WAVAX_ADDRESS,
   WAVAX_USDT_ADDRESS,
   WAVAX_USDC_ADDRESS,
-  TOTAL_SUPPLY_AND_BORROW_ADDRESS,
 } = getConfigValue(options.network, 'contract_addresses');
 
 // get treasury wallets
@@ -69,13 +78,19 @@ module.exports = {
   BN_18,
   BN_2,
   JOE_ADDRESS,
+  XJOE_ADDRESS,
   JOEFACTORY_ADDRESS,
   TEAM_TREASURY_WALLETS,
+  JOE_ROUTER_ADDRESS,
+  MASTERCHEFV2_ADDRESS,
+  MASTERCHEFV3_ADDRESS,
+  JOETROLLER_ADDRESS,
+  PRICE_ORACLE_ADDRESS,
+  REWARDS_DISTRIBUTOR_ADDRESS,
   TOTAL_SUPPLY_AND_BORROW_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
   WAVAX_ADDRESS,
-  XJOE_ADDRESS,
   WAVAX_USDT_ADDRESS,
   WAVAX_USDC_ADDRESS,
   BURN_ADDRESS,
