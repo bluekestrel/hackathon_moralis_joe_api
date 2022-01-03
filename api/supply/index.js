@@ -8,7 +8,7 @@ const {
   TEAM_TREASURY_WALLETS,
 } = require("../../constants");
 const { web3Factory } = require("../../utils/web3");
-const BN = require("bn.js");
+const BigNumber = require("bignumber.js");
 const JoeContractABI = require("../../abis/JoeTokenContractABI.json");
 
 const web3 = web3Factory(AVAX_CHAIN_ID);
@@ -29,9 +29,9 @@ class Cache {
       this.cachedTotalSupply.lastRequestTimestamp + this.minElapsedTimeInMs <
         Date.now() // check if supply needs to be updated
     ) {
-      const totalSupply = new BN(
+      const totalSupply = new BigNumber(
         await joeContract.methods.totalSupply().call()
-      ).sub(new BN(await getBalanceOf(BURN_ADDRESS))); // Remove burned supply
+      ).sub(new BigNumber(await getBalanceOf(BURN_ADDRESS))); // Remove burned supply
       const lastRequestTimestamp = Date.now();
       this.cachedTotalSupply = { totalSupply, lastRequestTimestamp };
     }
@@ -41,7 +41,7 @@ class Cache {
 
   async getMaxSupply() {
     if (!this.cachedMaxSupply) {
-      const maxSupply = new BN(await joeContract.methods.maxSupply().call());
+      const maxSupply = new BigNumber(await joeContract.methods.maxSupply().call());
       const lastRequestTimestamp = Date.now();
       this.cachedMaxSupply = { maxSupply, lastRequestTimestamp };
     }
@@ -64,9 +64,9 @@ class Cache {
         getBalanceOf(BURN_ADDRESS),
       ]);
 
-      let circulatingSupply = new BN(results[0]);
+      let circulatingSupply = new BigNumber(results[0]);
       for (let i = 1; i < results.length; i++) {
-        circulatingSupply = circulatingSupply.sub(new BN(results[i]));
+        circulatingSupply = circulatingSupply.sub(new BigNumber(results[i]));
       }
 
       const lastRequestTimestamp = Date.now();

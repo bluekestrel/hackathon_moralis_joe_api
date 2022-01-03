@@ -13,7 +13,7 @@ const {
   ZERO_ADDRESS, JOE_ADDRESS, XJOE_ADDRESS,
 } = require("../../constants");
 const { web3Factory } = require("../../utils/web3");
-const BN = require("bn.js");
+const BigNumber = require("bignumber.js");
 const tokenList = require("../../utils/tokenList.json");
 const web3 = web3Factory(AVAX_CHAIN_ID);
 
@@ -62,7 +62,7 @@ class Cache {
       .methods.decimals()
       .call();
 
-    this.decimals[tokenAddress] = decimals;
+    this.decimals[tokenAddress] = new BigNumber(decimals.toString());
     return decimals;
   }
 
@@ -82,19 +82,19 @@ class Cache {
       if (!(XJOE_ADDRESS in this.contract))
         this.contract[XJOE_ADDRESS] = new web3.eth.Contract(JoeBarContractABI, XJOE_ADDRESS);
 
-      const joeBalance = new BN(await getContractAsERC20(JOE_ADDRESS).methods.balanceOf(XJOE_ADDRESS).call());
-      const totalSupply = new BN(await this.contract[XJOE_ADDRESS].methods.totalSupply().call());
+      const joeBalance = new BigNumber(await getContractAsERC20(JOE_ADDRESS).methods.balanceOf(XJOE_ADDRESS).call());
+      const totalSupply = new BigNumber(await this.contract[XJOE_ADDRESS].methods.totalSupply().call());
 
-      const ratio = joeBalance.mul(BN_1E18).div(totalSupply);
+      const ratio = joeBalance.times(BN_1E18).div(totalSupply);
 
       const lastRequestTimestamp = Date.now();
-      const lastResult = (await this.getPrice(JOE_ADDRESS, true)).mul(ratio).div(BN_1E18);
+      const lastResult = (await this.getPrice(JOE_ADDRESS, true)).times(ratio).div(BN_1E18);
 
       this.cachedPrice[XJOE_ADDRESS] = { lastRequestTimestamp, lastResult };
     }
 
     return derived ? this.cachedPrice[XJOE_ADDRESS].lastResult :
-        this.cachedPrice[XJOE_ADDRESS].lastResult.mul(await this.getAvaxPrice()).div(BN_1E18)
+        this.cachedPrice[XJOE_ADDRESS].lastResult.times(await this.getAvaxPrice()).div(BN_1E18)
   }
 
   async getAvaxPrice() {
@@ -114,10 +114,10 @@ class Cache {
     ]);
 
     const priceUSDCE = result[0].reserveToken1
-      .mul(BN_1E18)
+      .times(BN_1E18)
       .div(result[0].reserveToken0);
     const priceUSDTE = result[1].reserveToken1
-      .mul(BN_1E18)
+      .times(BN_1E18)
       .div(result[1].reserveToken0);
 
     const avaxPrice = priceUSDCE.add(priceUSDTE).div(BN_2);
@@ -155,7 +155,7 @@ class Cache {
             this.getAvaxPrice(),
           ]);
       const price = reserves[0].reserveToken0
-        .mul(BN_1E18)
+        .times(BN_1E18)
         .div(reserves[0].reserveToken1);
 
       const lastRequestTimestamp = Date.now();
@@ -174,7 +174,7 @@ class Cache {
     return derived
       ? this.cachedPrice[tokenAddress].lastResult
       : this.cachedPrice[WAVAX_ADDRESS].lastResult
-          .mul(this.cachedPrice[tokenAddress].lastResult)
+          .times(this.cachedPrice[tokenAddress].lastResult)
           .div(BN_1E18);
   }
 }
@@ -190,18 +190,18 @@ async function getReserves(token0Address, token1Address, pairAddress) {
     cache.getContract(token0Address).methods.balanceOf(pairAddress).call(),
     cache.getContract(token1Address).methods.balanceOf(pairAddress).call(),
   ]);
-  const reserveToken0 = new BN(results[2]).mul(
-    get10PowN(BN_18.sub(new BN(results[0])))
+  const reserveToken0 = new BigNumber(results[2]).times(
+    get10PowN(BN_18.sub(new BigNumber(results[0])))
   );
-  const reserveToken1 = new BN(results[3]).mul(
-    get10PowN(BN_18.sub(new BN(results[1])))
+  const reserveToken1 = new BigNumber(results[3]).times(
+    get10PowN(BN_18.sub(new BigNumber(results[1])))
   );
 
   return { reserveToken0, reserveToken1 };
 }
 
 function get10PowN(n) {
-  return new BN("10").pow(new BN(n.toString()));
+  return new BigNumber("10").pow(new BigNumber(n.toString()));
 }
 
 async function getPrice(tokenAddress, derived) {

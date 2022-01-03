@@ -9,17 +9,27 @@ const nftHat = require('./api/nft/hat');
 const price = require('./api/price');
 const bankerJoe = require('./api/bankerjoe');
 
+// supply info routes
 router.get('/supply/circulating', supply.circulatingSupply);
 router.get('/supply/circulating-adjusted', supply.circulatingSupplyAdjusted);
 router.get('/supply/total', supply.totalSupply);
 router.get('/supply/max', supply.maxSupply);
+
+// nft info routes
 router.get('/nft/hat', nftHat.infos);
 router.get('/nft/hat/:id', nftHat.infos)
+
+// token price routes
 router.get('/priceavax/:tokenAddress', price.derivedPriceOfToken)
 router.get('/priceusd/:tokenAddress', price.priceOfToken)
+
+// banker joe info routes
 router.get('/lending/list', bankerJoe.getLendingPools) // TODO: all new routes will have a v2 prefixed to the path
 router.get('/lending/supply', bankerJoe.totalSupply)
 router.get('/lending/borrow', bankerJoe.totalBorrow)
+router.get('/lending/:farmAddress/supplyRateAPY', bankerJoe.getSupplyRateAPY); // v2 route
+router.get('/lending/:farmAddress/borrowRateAPY', bankerJoe.getBorrowRateAPY); // v2 route
+
 router.get('/', noop);
 
 module.exports = router;
