@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "node index.ts"
+    "start": "node index.ts",
+    "start-debug": "ts-node-dev --respawn --transpile-only index.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,5 +27,10 @@
     "*.ts": "prettier --write",
     "*.js": "prettier --write",
     "*.json": "prettier --write"
+  },
+  "devDependencies": {
+    "ts-node": "^10.4.0",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.5.4"
   }
 }
