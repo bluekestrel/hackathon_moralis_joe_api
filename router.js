@@ -8,6 +8,7 @@ const supply = require('./api/supply');
 const nftHat = require('./api/nft/hat');
 const price = require('./api/price');
 const bankerJoe = require('./api/bankerjoe');
+const farm = require('./api/farm');
 
 // supply info routes
 router.get('/supply/circulating', supply.circulatingSupply);
@@ -31,6 +32,9 @@ router.get('/lending/:lendingPool/supplyRateAPY', bankerJoe.getSupplyRateAPY); /
 router.get('/lending/:lendingPool/supplyRewardsAPR', bankerJoe.getSupplyRewardsAPR); // v2 route
 router.get('/lending/:lendingPool/borrowRateAPY', bankerJoe.getBorrowRateAPY); // v2 route
 router.get('/lending/:lendingPool/borrowRewardsAPR', bankerJoe.getBorrowRewardsAPR); // v2 route
+
+// farms info routes
+router.get('/farm/list', farm.listPools); // v2 route
 
 router.get('/', noop);
 
