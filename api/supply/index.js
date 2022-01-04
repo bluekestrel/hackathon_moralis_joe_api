@@ -31,7 +31,7 @@ class Cache {
     ) {
       const totalSupply = new BigNumber(
         await joeContract.methods.totalSupply().call()
-      ).sub(new BigNumber(await getBalanceOf(BURN_ADDRESS))); // Remove burned supply
+      ).minus(new BigNumber(await getBalanceOf(BURN_ADDRESS))); // Remove burned supply
       const lastRequestTimestamp = Date.now();
       this.cachedTotalSupply = { totalSupply, lastRequestTimestamp };
     }
@@ -66,7 +66,7 @@ class Cache {
 
       let circulatingSupply = new BigNumber(results[0]);
       for (let i = 1; i < results.length; i++) {
-        circulatingSupply = circulatingSupply.sub(new BigNumber(results[i]));
+        circulatingSupply = circulatingSupply.minus(new BigNumber(results[i]));
       }
 
       const lastRequestTimestamp = Date.now();

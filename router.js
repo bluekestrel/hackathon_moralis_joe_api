@@ -28,7 +28,9 @@ router.get('/lending/list', bankerJoe.getLendingPools) // TODO: all new routes w
 router.get('/lending/supply', bankerJoe.totalSupply)
 router.get('/lending/borrow', bankerJoe.totalBorrow)
 router.get('/lending/:farmAddress/supplyRateAPY', bankerJoe.getSupplyRateAPY); // v2 route
+router.get('/lending/:farmAddress/supplyRewardsAPR', bankerJoe.getSupplyRewardsAPR); // v2 route
 router.get('/lending/:farmAddress/borrowRateAPY', bankerJoe.getBorrowRateAPY); // v2 route
+router.get('/lending/:farmAddress/borrowRewardsAPR', bankerJoe.getBorrowRewardsAPR); // v2 route
 
 router.get('/', noop);
 

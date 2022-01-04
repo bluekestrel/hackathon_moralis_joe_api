@@ -4,7 +4,7 @@ const {
   BN_1E18,
   BN_18,
   BN_2,
-  JOEFACTORY_ADDRESS,
+  JOE_FACTORY_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
   WAVAX_ADDRESS,
@@ -25,7 +25,7 @@ const JoeFactoryContractABI = require("../../abis/JoeFactoryContractABI.json");
 // contracts
 const joefactory_contract = new web3.eth.Contract(
   JoeFactoryContractABI,
-  JOEFACTORY_ADDRESS
+  JOE_FACTORY_ADDRESS
 );
 
 class Cache {
@@ -120,7 +120,7 @@ class Cache {
       .times(BN_1E18)
       .div(result[1].reserveToken0);
 
-    const avaxPrice = priceUSDCE.add(priceUSDTE).div(BN_2);
+    const avaxPrice = priceUSDCE.plus(priceUSDTE).div(BN_2);
 
     const lastRequestTimestamp = Date.now();
     const lastResult = avaxPrice;
@@ -191,10 +191,10 @@ async function getReserves(token0Address, token1Address, pairAddress) {
     cache.getContract(token1Address).methods.balanceOf(pairAddress).call(),
   ]);
   const reserveToken0 = new BigNumber(results[2]).times(
-    get10PowN(BN_18.sub(new BigNumber(results[0])))
+    get10PowN(BN_18.minus(new BigNumber(results[0])))
   );
   const reserveToken1 = new BigNumber(results[3]).times(
-    get10PowN(BN_18.sub(new BigNumber(results[1])))
+    get10PowN(BN_18.minus(new BigNumber(results[1])))
   );
 
   return { reserveToken0, reserveToken1 };
@@ -258,4 +258,4 @@ async function derivedPriceOfToken(ctx) {
 }
 
 const cache = new Cache();
-module.exports = { priceOfToken, derivedPriceOfToken };
+module.exports = { priceOfToken, derivedPriceOfToken, getPrice };

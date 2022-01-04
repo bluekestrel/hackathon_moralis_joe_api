@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "node index.ts",
-    "start-debug": "ts-node-dev --respawn --transpile-only index.ts"
+    "start-dev": "ts-node-dev --respawn --transpile-only index.ts"
   },
   "keywords": [],
   "author": "",
