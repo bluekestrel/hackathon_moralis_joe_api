@@ -27,10 +27,10 @@ router.get('/priceusd/:tokenAddress', price.priceOfToken)
 router.get('/lending/list', bankerJoe.getLendingPools) // TODO: all new routes will have a v2 prefixed to the path
 router.get('/lending/supply', bankerJoe.totalSupply)
 router.get('/lending/borrow', bankerJoe.totalBorrow)
-router.get('/lending/:farmAddress/supplyRateAPY', bankerJoe.getSupplyRateAPY); // v2 route
-router.get('/lending/:farmAddress/supplyRewardsAPR', bankerJoe.getSupplyRewardsAPR); // v2 route
-router.get('/lending/:farmAddress/borrowRateAPY', bankerJoe.getBorrowRateAPY); // v2 route
-router.get('/lending/:farmAddress/borrowRewardsAPR', bankerJoe.getBorrowRewardsAPR); // v2 route
+router.get('/lending/:lendingPool/supplyRateAPY', bankerJoe.getSupplyRateAPY); // v2 route
+router.get('/lending/:lendingPool/supplyRewardsAPR', bankerJoe.getSupplyRewardsAPR); // v2 route
+router.get('/lending/:lendingPool/borrowRateAPY', bankerJoe.getBorrowRateAPY); // v2 route
+router.get('/lending/:lendingPool/borrowRewardsAPR', bankerJoe.getBorrowRewardsAPR); // v2 route
 
 router.get('/', noop);
 
