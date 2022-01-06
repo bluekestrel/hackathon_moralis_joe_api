@@ -71,7 +71,7 @@ class Cache {
     const poolsInfo = await Promise.all(promises);
     poolsInfo.forEach((poolInfo) => {
       // now that we have the pool info, populate the passed-in pools object accordingly
-      pools[poolInfo.lpToken] = {
+      pools[poolInfo.lpToken.toLowerCase()] = {
         allocPoint: new BigNumber(poolInfo.allocPoint),
         accJoePerShare: new BigNumber(poolInfo.accJoePerShare),
         // assume we can cast the pool length bignumber to a regular JS integer, this will work so
@@ -112,7 +112,7 @@ class Cache {
     return list;
   }
 
-  async calculateAPR(poolAddress, poolsList, contract) {
+  async calculateAPR(poolAddress, poolsList, contract, version) {
     const joePairContract = new web3.eth.Contract(
       JoePairABI,
       poolAddress,
@@ -162,7 +162,11 @@ class Cache {
     );
 
     // calulate the denominator, which is the current derived total value of the LP token
-    const denominator = (new BigNumber(2)).times(TVL).times(chefBalance).div(totalSupply);
+    // V2 farms need to have the denominator multiplied by 2, V3 farms do not
+    let denominator = (TVL).times(chefBalance).div(totalSupply);
+    if (version === "V2") {
+      denominator = denominator.times(2);
+    }
 
     // now calculate the APR
     const APR = numerator.div(denominator).times(100).decimalPlaces(2);
@@ -175,6 +179,7 @@ class Cache {
   }
 
   async getPoolAPR(poolAddress) {
+    poolAddress = poolAddress.toLowerCase();
     // check to make sure the pool is listed in one of the two MasterChef contracts
     // make sure the pools lists are up to date first by calling getPools(...)
     await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
@@ -189,7 +194,7 @@ class Cache {
           Date.now() // check if values for the specific pool need to be updated
         )
       ) {
-        poolAPR = await this.calculateAPR(poolAddress, this.v2Pools, MasterChefV2);
+        poolAPR = await this.calculateAPR(poolAddress, this.v2Pools, MasterChefV2, "V2");
       } else {
         poolAPR = this.v2Pools[poolAddress].APR;
       }
@@ -205,7 +210,7 @@ class Cache {
           Date.now() // check if values for the specific pool need to be updated
         )
       ) {
-        poolAPR = await this.calculateAPR(poolAddress, this.v3Pools, MasterChefV3);
+        poolAPR = await this.calculateAPR(poolAddress, this.v3Pools, MasterChefV3, "V3");
       } else {
         poolAPR = this.v3Pools[poolAddress].APR;
       }
@@ -217,6 +222,9 @@ class Cache {
     }
   }
 }
+
+// TODO: calculate reward APR for tokens that are being bolstered by a secondary reward generating
+// contract (i.e. rewarder address in poolInfo will be a non-zero address!)
 
 async function listPools(ctx) {
   ctx.body = (await cache.listPools());
