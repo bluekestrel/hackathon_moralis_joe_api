@@ -84,7 +84,12 @@ async function getTVLByToken(ctx) {
   }
 }
 
+async function TVLHelper(tokenAddress) {
+  return (await cache.getTVLByToken(tokenAddress));
+}
+
 const cache = new Cache();
 module.exports = {
   getTVLByToken,
+  TVLHelper,
 };
