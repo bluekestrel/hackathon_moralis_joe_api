@@ -74,9 +74,11 @@ class Cache {
       pools[poolInfo.lpToken.toLowerCase()] = {
         allocPoint: new BigNumber(poolInfo.allocPoint),
         accJoePerShare: new BigNumber(poolInfo.accJoePerShare),
+        rewarder: poolInfo.rewarder,
         // assume we can cast the pool length bignumber to a regular JS integer, this will work so
         // long as it is not greater than MAX_INT which is highly unlikely
         pid: Number(i),
+        TVL: undefined,
         APR: undefined,
         lastUpdated: 0,
       };
@@ -110,6 +112,35 @@ class Cache {
     });
 
     return list;
+  }
+
+  findPool(address) {
+    // given a potential lp token address, return the associated pool information
+    if (address in this.v2Pools) {
+      return {
+        list: this.v2Pools,
+        contract: MasterChefV2,
+        version: "V2",
+      };
+    }
+    else if (address in this.v3Pools) {
+      return {
+        list: this.v3Pools,
+        contract: MasterChefV3,
+        version: "V3",
+      };
+    }
+    else {
+      throw new Error("404: Farm not found");
+    }
+  }
+
+  async getFarmTVL(poolAddress) {
+    // implement
+  }
+
+  async calculateTVL(poolAddress, poolsList, contract, version) {
+    // implement
   }
 
   async calculateAPR(poolAddress, poolsList, contract, version) {
@@ -185,41 +216,28 @@ class Cache {
     await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
     await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
 
-    if (poolAddress in this.v2Pools) {
-      let poolAPR;
-
-      if (
-        !(this.v2Pools[poolAddress]) || (this.v2Pools[poolAddress].lastUpdated +
-          this.minElapsedTimeInMs <
-          Date.now() // check if values for the specific pool need to be updated
-        )
-      ) {
-        poolAPR = await this.calculateAPR(poolAddress, this.v2Pools, MasterChefV2, "V2");
-      } else {
-        poolAPR = this.v2Pools[poolAddress].APR;
-      }
-
-      return poolAPR;
+    // get necessary information to calculate APR
+    let list, contract, version;
+    try {
+      ({ list, contract, version } = this.findPool(poolAddress));
+    } catch {
+      return "Pool is not an active yield farm"
     }
-    else if (poolAddress in this.v3Pools) {
-      let poolAPR;
 
-      if (
-        !(this.v3Pools[poolAddress]) || (this.v3Pools[poolAddress].lastUpdated +
-          this.minElapsedTimeInMs <
-          Date.now() // check if values for the specific pool need to be updated
-        )
-      ) {
-        poolAPR = await this.calculateAPR(poolAddress, this.v3Pools, MasterChefV3, "V3");
-      } else {
-        poolAPR = this.v3Pools[poolAddress].APR;
-      }
+    let poolAPR;
+    // check if values for the specific pool need to be updated
+    if (
+      !(list[poolAddress]) || (list[poolAddress].lastUpdated +
+        this.minElapsedTimeInMs <
+        Date.now() // check if values for the specific pool need to be updated
+      )
+    ) {
+      poolAPR = await this.calculateAPR(poolAddress, list, contract, version);
+    } else {
+      poolAPR = list[poolAddress].APR;
+    }
 
-      return poolAPR;
-    }
-    else {
-      return "Pool is not an active yield farm";
-    }
+    return poolAPR;
   }
 }
 
@@ -234,6 +252,20 @@ async function getFarmAPR(ctx) {
   if (!("lpToken" in ctx.params)) ctx.body = "";
   else {
     ctx.body = (await cache.getPoolAPR(ctx.params.lpToken));
+  }
+}
+
+async function getFarmTVL(ctx) {
+  if (!("lpToken" in ctx.params)) ctx.body = "";
+  else {
+    ctx.body = (await cache.getFarmTVL(ctx.params.lpToken));
+  }
+}
+
+async function getBonusAPR(ctx) {
+  if (!("lpToken" in ctx.params)) ctx.body = "";
+  else {
+    ctx.body = (await cache.getFarmTVL(ctx.params.lpToken));
   }
 }
 
