@@ -38,6 +38,7 @@ router.get('/lending/:lendingPool/borrowRewardsAPR', bankerJoe.getBorrowRewardsA
 router.get('/farm/list', farm.listPools); // v2 route
 router.get('/farm/APR/:lpToken', farm.getFarmAPR); // v2 route
 router.get('/farm/liquidity/:lpToken', farm.getFarmLiquidity); // v2 route
+router.get('/farm/bonusAPR/:lpToken', farm.getBonusAPR); // v2 route
 
 // pools info routes
 // TODO: swap routes so user-provided value is LAST

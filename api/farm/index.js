@@ -9,6 +9,7 @@ const { getPrice } = require("../price/index");
 const JoePairABI = require("../../abis/JoePairABI.json");
 const MasterChefV2ABI = require("../../abis/MasterChefJoeV2ABI.json");
 const MasterChefV3ABI = require("../../abis/MasterChefJoeV3ABI.json");
+const SimpleRewardABI = require("../../abis/SimpleRewardABI.json");
 
 const {
   AVAX_CHAIN_ID,
@@ -18,6 +19,7 @@ const {
   MASTERCHEFV3_ADDRESS,
   BN_1E18,
   BN_1,
+  ZERO_ADDRESS,
 } = require("../../constants");
 
 // setup provider
@@ -74,7 +76,6 @@ class Cache {
       pools[poolInfo.lpToken.toLowerCase()] = {
         allocPoint: new BigNumber(poolInfo.allocPoint),
         accJoePerShare: new BigNumber(poolInfo.accJoePerShare),
-        rewarder: poolInfo.rewarder,
         // assume we can cast the pool length bignumber to a regular JS integer, this will work so
         // long as it is not greater than MAX_INT which is highly unlikely
         pid: Number(i),
@@ -141,7 +142,7 @@ class Cache {
   async calculateFarmLiquidity(poolAddress, poolsList, ammContract) {
     // check if values for the specific pool are new enough to be used
     const expirationTime = poolsList[poolAddress].lastUpdatedLiquidity + this.minElapsedTimeInMs;
-    if (poolsList[poolAddress] && (expirationTime > Date.now())) {
+    if (poolsList[poolAddress].liquidity && (expirationTime > Date.now())) {
       // return value saved in cache
       return poolsList[poolAddress].liquidity;
     }
@@ -198,7 +199,63 @@ class Cache {
   }
 
   async getFarmBonusAPR(poolAddress) {
-    //implement
+    poolAddress = poolAddress.toLowerCase();
+    // check to make sure the pool is listed in one of the two MasterChef contracts
+    // make sure the pools lists are up to date first by calling getPools(...)
+    await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
+    await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
+
+    // get necessary information to calculate liquidity
+    let list, contract, version;
+    try {
+      ({ list, contract, version } = this.findPool(poolAddress));
+    } catch {
+      return "Pool is not an active yield farm"
+    }
+
+    // check to make sure farm requested is receiving bonus tokens
+    const { rewarder: rewarderAddress } = await contract.methods
+      .poolInfo(list[poolAddress].pid)
+      .call();
+
+    if (rewarderAddress === ZERO_ADDRESS) {
+      // farm is currently not receiving any bonus tokens, so return 0 for bonus APR
+      return 0;
+    }
+
+    // check if values for the specific pool are new enough to be used
+    const expirationTime = list[poolAddress].lastUpdatedBonusAPR + this.minElapsedTimeInMs;
+    if (list[poolAddress].bonusAPR && (expirationTime > Date.now())) {
+      // return value saved in cache
+      return list[poolAddress].bonusAPR;
+    }
+
+    const rewarderContract = new web3.eth.Contract(SimpleRewardABI, rewarderAddress);
+
+    // get the address of the reward token and calculate its value (in USD)
+    const rewardTokenAddress = await rewarderContract.methods.rewardToken().call();
+    let result = await getPrice(rewardTokenAddress, false);
+    const tokenPrice = new BigNumber(result.toString()).div(BN_1E18);
+
+    // get the number of reward tokens earned per second
+    result = await rewarderContract.methods.tokenPerSec().call();
+    const tokenAccruedPerSec = (new BigNumber(result.toString())).div(BN_1E18);
+
+    // calculate the numerator, which is the total value of the reward token earned per year by
+    // the reward contract
+    const numerator = tokenAccruedPerSec.times(tokenPrice).times(SECONDS_PER_YEAR);
+
+    // calculate the farm liquidity, which is the denominator
+    const denominator = await this.calculateFarmLiquidity(poolAddress, list, contract, version);
+
+    // now calculate the bonus reward APR
+    const bonusAPR = numerator.div(denominator).times(100).decimalPlaces(2);
+
+    // update the values stored in the pools list
+    list[poolAddress].bonusAPR = bonusAPR;
+    list[poolAddress].lastUpdatedBonusAPR = Date.now();
+
+    return bonusAPR;
   }
 
   async calculateAPR(poolAddress, poolsList, contract, version) {
@@ -259,7 +316,7 @@ class Cache {
 
     let poolAPR;
     if (
-      !(list[poolAddress]) || (list[poolAddress].lastUpdatedAPR + this.minElapsedTimeInMs <
+      !(list[poolAddress].APR) || (list[poolAddress].lastUpdatedAPR + this.minElapsedTimeInMs <
         Date.now() // check if values for the specific pool need to be updated
       )
     ) {
@@ -271,9 +328,6 @@ class Cache {
     return poolAPR;
   }
 }
-
-// TODO: calculate reward APR for tokens that are being bolstered by a secondary reward generating
-// contract (i.e. rewarder address in poolInfo will be a non-zero address!)
 
 async function listPools(ctx) {
   ctx.body = (await cache.listPools());
@@ -305,4 +359,5 @@ module.exports = {
   listPools,
   getFarmAPR,
   getFarmLiquidity,
+  getBonusAPR,
 };
