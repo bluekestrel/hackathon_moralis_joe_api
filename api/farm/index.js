@@ -263,6 +263,10 @@ class Cache {
     const poolInfo = await contract.methods.poolInfo(poolsList[poolAddress].pid).call();
     const poolAllocPoints = new BigNumber(poolInfo.allocPoint.toString());
 
+    // TODO: if poolAllocPoints is zero then immediately return with 0
+    // TODO: consolidate individual contract calls into an array and await on the array to save
+    // some computation time
+
     // get the total allocation points for the AMM contract (aka the MasterChef contract)
     let result = await contract.methods.totalAllocPoint().call();
     const totalAllocPoints = new BigNumber(result.toString());
@@ -327,6 +331,26 @@ class Cache {
 
     return poolAPR;
   }
+
+  async getPoolWeight(poolAddress) {
+    poolAddress = poolAddress.toLowerCase();
+    // check to make sure the pool is listed in one of the two MasterChef contracts
+    // make sure the pools lists are up to date first by calling getPools(...)
+    await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
+    await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
+
+    // get necessary information to calculate pool weight
+    let list, contract;
+    try {
+      ({ list, contract } = this.findPool(poolAddress));
+    } catch {
+      return "Pool is not an active yield farm"
+    }
+
+    const { allocPoint } =  await contract.methods.poolInfo(list[poolAddress].pid).call();
+    const poolWeight = (new BigNumber(allocPoint)).div(100);
+    return poolWeight;
+  }
 }
 
 async function listPools(ctx) {
@@ -354,10 +378,18 @@ async function getBonusAPR(ctx) {
   }
 }
 
+async function getPoolWeight(ctx) {
+  if (!("lpToken" in ctx.params)) ctx.body = "";
+  else {
+    ctx.body = (await cache.getPoolWeight(ctx.params.lpToken));
+  }
+}
+
 const cache = new Cache();
 module.exports = {
   listPools,
   getFarmAPR,
   getFarmLiquidity,
   getBonusAPR,
+  getPoolWeight,
 };
