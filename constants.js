@@ -1,7 +1,9 @@
-require('dotenv').config;
+require('dotenv').config({ path: './.env' });
 const BigNumber = require("bignumber.js");
 const CLA = require('command-line-args');
 const config = require('./config');
+
+const API_KEY = process.env.MORALIS_API_KEY;
 
 // number constants
 const BN_1E18 = new BigNumber("1000000000000000000");
@@ -75,6 +77,7 @@ const {
 const TEAM_TREASURY_WALLETS = getConfigValue(options.network, 'team_treasury_wallets');
 
 module.exports = {
+  API_KEY,
   AVAX_RPC,
   AVAX_CHAIN_ID,
   BN_1E18,

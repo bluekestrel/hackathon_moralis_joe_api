@@ -2,7 +2,7 @@
 
 async function rt(ctx, next) {
   await next();
-  ctx.set('X-Powered-By', 'moo!');
+  ctx.set('X-Powered-By', 'JOE');
 }
 
 module.exports = rt;
