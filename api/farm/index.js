@@ -118,8 +118,14 @@ class Cache {
     return list;
   }
 
-  findPool(address) {
+  async findPool(address) {
     // given a potential lp token address, return the associated pool information
+    // make sure the pools lists are up to date first by calling getPools(...)
+    await Promise.all([
+      this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2"),
+      this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3"),
+    ]);
+
     if (address in this.v2Pools) {
       return {
         list: this.v2Pools,
@@ -182,15 +188,11 @@ class Cache {
 
   async getFarmLiquidity(poolAddress) {
     poolAddress = poolAddress.toLowerCase();
-    // check to make sure the pool is listed in one of the two MasterChef contracts
-    // make sure the pools lists are up to date first by calling getPools(...)
-    await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
-    await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
 
     // get necessary information to calculate liquidity
     let list, contract, version;
     try {
-      ({ list, contract, version } = this.findPool(poolAddress));
+      ({ list, contract, version } = await this.findPool(poolAddress));
     } catch {
       return "Pool is not an active yield farm"
     }
@@ -200,15 +202,11 @@ class Cache {
 
   async getFarmBonusAPR(poolAddress) {
     poolAddress = poolAddress.toLowerCase();
-    // check to make sure the pool is listed in one of the two MasterChef contracts
-    // make sure the pools lists are up to date first by calling getPools(...)
-    await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
-    await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
 
     // get necessary information to calculate liquidity
     let list, contract, version;
     try {
-      ({ list, contract, version } = this.findPool(poolAddress));
+      ({ list, contract, version } = await this.findPool(poolAddress));
     } catch {
       return "Pool is not an active yield farm"
     }
@@ -263,7 +261,11 @@ class Cache {
     const poolInfo = await contract.methods.poolInfo(poolsList[poolAddress].pid).call();
     const poolAllocPoints = new BigNumber(poolInfo.allocPoint.toString());
 
-    // TODO: if poolAllocPoints is zero then immediately return with 0
+    // if poolAllocPoints is zero then the APR will also be 0
+    if (poolAllocPoints.eq(0)) {
+      return 0;
+    }
+
     // TODO: consolidate individual contract calls into an array and await on the array to save
     // some computation time
 
@@ -305,15 +307,11 @@ class Cache {
 
   async getPoolAPR(poolAddress) {
     poolAddress = poolAddress.toLowerCase();
-    // check to make sure the pool is listed in one of the two MasterChef contracts
-    // make sure the pools lists are up to date first by calling getPools(...)
-    await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
-    await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
 
     // get necessary information to calculate APR
     let list, contract, version;
     try {
-      ({ list, contract, version } = this.findPool(poolAddress));
+      ({ list, contract, version } = await this.findPool(poolAddress));
     } catch {
       return "Pool is not an active yield farm"
     }
@@ -334,15 +332,11 @@ class Cache {
 
   async getPoolWeight(poolAddress) {
     poolAddress = poolAddress.toLowerCase();
-    // check to make sure the pool is listed in one of the two MasterChef contracts
-    // make sure the pools lists are up to date first by calling getPools(...)
-    await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
-    await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
 
     // get necessary information to calculate pool weight
     let list, contract;
     try {
-      ({ list, contract } = this.findPool(poolAddress));
+      ({ list, contract } = await this.findPool(poolAddress));
     } catch {
       return "Pool is not an active yield farm"
     }

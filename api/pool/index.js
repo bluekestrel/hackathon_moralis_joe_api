@@ -48,15 +48,26 @@ class Cache {
       token1Address,
     );
 
-    // determine the number of tokens the lpToken address holds and the decimals values for the
-    // tokens
-    let [resultToken0, resultToken1, decimalsToken0, decimalsToken1] = await Promise.all([
+    // determine the number of tokens the lpToken address holds, the decimals values for the
+    // tokens, and the respective price in USD for each token
+    let [
+      resultToken0,
+      resultToken1,
+      decimalsToken0,
+      decimalsToken1,
+      token0Price,
+      token1Price,
+    ] = await Promise.all([
       token0Contract.methods.balanceOf(lpTokenAddress).call(),
       token1Contract.methods.balanceOf(lpTokenAddress).call(),
       token0Contract.methods.decimals().call(),
       token1Contract.methods.decimals().call(),
+      getPrice(token0Address, false),
+      getPrice(token1Address, false),
     ]);
 
+    // convert resulting values to bignumber.js bignumbers, and divide the balances for token0 and
+    // token1 by 10 ** decimals for each token respectively
     decimalsToken0 = new BigNumber(decimalsToken0.toString());
     decimalsToken1 = new BigNumber(decimalsToken1.toString());
     const balanceToken0 = (new BigNumber(resultToken0.toString())).div(
@@ -64,10 +75,8 @@ class Cache {
     const balanceToken1 = (new BigNumber(resultToken1.toString())).div(
       new BigNumber(10).pow(decimalsToken1));
 
-    // get the prices of token0 and token1
-    let token0Price = await getPrice(token0Address, false);
+    // convert the prices of token0 and token1
     token0Price = (new BigNumber(token0Price.toString())).div(BN_1E18);
-    let token1Price = await getPrice(token1Address, false);
     token1Price = (new BigNumber(token1Price.toString())).div(BN_1E18);
 
     // calculate TVL
