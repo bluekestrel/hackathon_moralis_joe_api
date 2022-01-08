@@ -78,9 +78,12 @@ class Cache {
         // assume we can cast the pool length bignumber to a regular JS integer, this will work so
         // long as it is not greater than MAX_INT which is highly unlikely
         pid: Number(i),
-        TVL: undefined,
+        liquidity: undefined,
         APR: undefined,
-        lastUpdated: 0,
+        bonusAPR: undefined,
+        lastUpdatedAPR: 0,
+        lastUpdatedBonusAPR: 0,
+        lastUpdatedLiquidity: 0,
       };
 
       i = i.plus(BN_1);
@@ -135,20 +138,70 @@ class Cache {
     }
   }
 
-  async getFarmTVL(poolAddress) {
-    // implement
-  }
+  async calculateFarmLiquidity(poolAddress, poolsList, ammContract) {
+    // check if values for the specific pool are new enough to be used
+    const expirationTime = poolsList[poolAddress].lastUpdatedLiquidity + this.minElapsedTimeInMs;
+    if (poolsList[poolAddress] && (expirationTime > Date.now())) {
+      // return value saved in cache
+      return poolsList[poolAddress].liquidity;
+    }
 
-  async calculateTVL(poolAddress, poolsList, contract, version) {
-    // implement
-  }
-
-  async calculateAPR(poolAddress, poolsList, contract, version) {
     const joePairContract = new web3.eth.Contract(
       JoePairABI,
       poolAddress,
     );
 
+    // get the TVL of the overal pool
+    let result = await TVLHelper(poolAddress);
+    const poolTVL = new BigNumber(result.toString());
+
+    // get the number of decimals for the LP token
+    result = await joePairContract.methods.decimals().call();
+    const lpDecimals = new BigNumber(result.toString());
+
+    // get the number of LP tokens that the AMM contract holds
+    result = await joePairContract.methods.balanceOf(ammContract._address).call();
+    const chefBalance = (new BigNumber(result.toString())).div(
+      new BigNumber(10).pow(lpDecimals),
+    );
+
+    // get the total supply of LP tokens
+    result = await joePairContract.methods.totalSupply().call();
+    const totalSupply = (new BigNumber(result.toString())).div(
+      new BigNumber(10).pow(lpDecimals),
+    );
+
+    // calulate the farm liquidity, which is the current derived total value of the LP token
+    let farmLiquidity = (poolTVL).times(chefBalance).div(totalSupply).decimalPlaces(2);
+    poolsList[poolAddress].liquidity = farmLiquidity;
+    poolsList[poolAddress].lastUpdatedLiquidity = Date.now();
+
+    return farmLiquidity;
+  }
+
+  async getFarmLiquidity(poolAddress) {
+    poolAddress = poolAddress.toLowerCase();
+    // check to make sure the pool is listed in one of the two MasterChef contracts
+    // make sure the pools lists are up to date first by calling getPools(...)
+    await this.getPools(this.v2PoolsLength, this.v2Pools, MasterChefV2, "V2");
+    await this.getPools(this.v3PoolsLength, this.v3Pools, MasterChefV3, "V3");
+
+    // get necessary information to calculate liquidity
+    let list, contract, version;
+    try {
+      ({ list, contract, version } = this.findPool(poolAddress));
+    } catch {
+      return "Pool is not an active yield farm"
+    }
+
+    return await this.calculateFarmLiquidity(poolAddress, list, contract, version);
+  }
+
+  async getFarmBonusAPR(poolAddress) {
+    //implement
+  }
+
+  async calculateAPR(poolAddress, poolsList, contract, version) {
     // get new information for the specific pool address requested
     const poolInfo = await contract.methods.poolInfo(poolsList[poolAddress].pid).call();
     const poolAllocPoints = new BigNumber(poolInfo.allocPoint.toString());
@@ -171,30 +224,10 @@ class Cache {
       .times(joeAccruedPerSec)
       .times(joePrice)
       .times(SECONDS_PER_YEAR);
-    
-    // get the TVL of the pool
-    result = await TVLHelper(poolAddress);
-    const TVL = new BigNumber(result.toString());
 
-    // get the number of decimals for the LP token
-    result = await joePairContract.methods.decimals().call();
-    const lpDecimals = new BigNumber(result.toString());
-
-    // get the number of LP tokens that the AMM contract holds
-    result = await joePairContract.methods.balanceOf(contract._address).call();
-    const chefBalance = (new BigNumber(result.toString())).div(
-      new BigNumber(10).pow(lpDecimals),
-    );
-
-    // get the total supply of LP tokens
-    result = await joePairContract.methods.totalSupply().call();
-    const totalSupply = (new BigNumber(result.toString())).div(
-      new BigNumber(10).pow(lpDecimals),
-    );
-
-    // calulate the denominator, which is the current derived total value of the LP token
-    // V2 farms need to have the denominator multiplied by 2, V3 farms do not
-    let denominator = (TVL).times(chefBalance).div(totalSupply);
+    // calculate the farm liquidity, which is the denominator
+    // for MasterChef V2 pools, multiply the denominator by 2
+    let denominator = await this.calculateFarmLiquidity(poolAddress, poolsList, contract, version);
     if (version === "V2") {
       denominator = denominator.times(2);
     }
@@ -204,7 +237,7 @@ class Cache {
 
     // update the values in the poolsList for the specific LP token
     poolsList[poolAddress].APR = APR;
-    poolsList[poolAddress].lastUpdated = Date.now();
+    poolsList[poolAddress].lastUpdatedAPR = Date.now();
 
     return APR;
   }
@@ -225,10 +258,8 @@ class Cache {
     }
 
     let poolAPR;
-    // check if values for the specific pool need to be updated
     if (
-      !(list[poolAddress]) || (list[poolAddress].lastUpdated +
-        this.minElapsedTimeInMs <
+      !(list[poolAddress]) || (list[poolAddress].lastUpdatedAPR + this.minElapsedTimeInMs <
         Date.now() // check if values for the specific pool need to be updated
       )
     ) {
@@ -255,17 +286,17 @@ async function getFarmAPR(ctx) {
   }
 }
 
-async function getFarmTVL(ctx) {
+async function getFarmLiquidity(ctx) {
   if (!("lpToken" in ctx.params)) ctx.body = "";
   else {
-    ctx.body = (await cache.getFarmTVL(ctx.params.lpToken));
+    ctx.body = (await cache.getFarmLiquidity(ctx.params.lpToken));
   }
 }
 
 async function getBonusAPR(ctx) {
   if (!("lpToken" in ctx.params)) ctx.body = "";
   else {
-    ctx.body = (await cache.getFarmTVL(ctx.params.lpToken));
+    ctx.body = (await cache.getFarmBonusAPR(ctx.params.lpToken));
   }
 }
 
@@ -273,4 +304,5 @@ const cache = new Cache();
 module.exports = {
   listPools,
   getFarmAPR,
+  getFarmLiquidity,
 };
