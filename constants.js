@@ -12,6 +12,7 @@ const BN_2 = new BigNumber("2");
 const BN_1 = new BigNumber("1");
 const DAYS_PER_YEAR = new BigNumber("365");
 const SECONDS_PER_YEAR = new BigNumber("31536000");
+const FEES_PERCENT = new BigNumber("0.0025");
 
 // address constants
 const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD";
@@ -84,6 +85,7 @@ module.exports = {
   BN_18,
   BN_2,
   BN_1,
+  FEES_PERCENT,
   JOE_ADDRESS,
   XJOE_ADDRESS,
   JOE_FACTORY_ADDRESS,

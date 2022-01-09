@@ -45,6 +45,7 @@ router.get('/farm/bonusAPR/:lpToken', farm.getBonusAPR); // v2 route
 // TODO: swap routes so user-provided value is LAST
 router.get('/pool/lpTokenTVL/:lpToken', pool.getTVLByToken); // v2 route
 router.get('/pool/volume/:lpToken', pool.get24HourTransactionVolume); // v2 route
+router.get('/pool/fees/:lpToken', pool.getTransactionFees); // v2 route
 
 router.get('/', noop);
 

@@ -15,6 +15,7 @@ const {
   SECONDS_PER_YEAR,
   BN_1E18,
   BN_1,
+  FEES_PERCENT,
 } = require("../../constants");
 
 const moralisEndpoint = "https://deep-index.moralis.io/api/v2";
@@ -148,6 +149,10 @@ class Cache {
   }
 
   async getTransactionHistory(lpTokenAddress) {
+    // TODO: verify that the passed-in address is actually a JOE LP token, this can be accomplished
+    // by: 1. getting the token0 and token1 of the JoePair (try-catch this) 2. using the two tokens
+    // put them into the Joe Factory contract and seeing if you get the same lp token address back
+    // (if any) as the one that was passed in
     if (!(this.pools[lpTokenAddress])) {
       // if this lp token has not been initialized, initialize the entire 24 hour transaction
       // volume array
@@ -164,6 +169,12 @@ class Cache {
     });
 
     return total24HourVolume.decimalPlaces(2);
+  }
+
+  async getTransactionFees(lpTokenAddress) {
+    const transactionVolume = await this.getTransactionHistory(lpTokenAddress);
+    const fees = transactionVolume.times(FEES_PERCENT);
+    return fees;
   }
 
   async getTVLByToken(lpTokenAddress) {
@@ -247,6 +258,13 @@ async function get24HourTransactionVolume(ctx) {
   }
 }
 
+async function getTransactionFees(ctx) {
+  if (!("lpToken" in ctx.params)) ctx.body = "";
+  else {
+    ctx.body = (await cache.getTransactionFees(ctx.params.lpToken));
+  }
+}
+
 async function TVLHelper(tokenAddress) {
   return (await cache.getTVLByToken(tokenAddress));
 }
@@ -256,4 +274,5 @@ module.exports = {
   getTVLByToken,
   TVLHelper,
   get24HourTransactionVolume,
+  getTransactionFees,
 };
