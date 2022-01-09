@@ -12,41 +12,60 @@ const JoePairABI = require("../../abis/JoePairABI.json");
 const {
   API_KEY,
   AVAX_CHAIN_ID,
-  SECONDS_PER_YEAR,
   BN_1E18,
   BN_1,
+  DAYS_PER_YEAR,
   FEES_PERCENT,
+  SECONDS_PER_YEAR,
 } = require("../../constants");
 
 const moralisEndpoint = "https://deep-index.moralis.io/api/v2";
 
-// keccak256 hash of the 'Transfer' event topic for JoePairs
-const transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+// keccak256 hash of the 'Swap' event topic for JoePairs
+const swapTopic = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822";
 
 // ABI of a transfer event for a JoePair, needed by Moralis api endpoint
-const transferABI = {
+const swapABI = {
   "anonymous": false,
   "inputs": [
     {
       "indexed": true,
       "internalType": "address",
-      "name": "from",
+      "name": "sender",
       "type": "address"
+    },
+    {
+      "indexed": false,
+      "internalType": "uint256",
+      "name": "amount0In",
+      "type": "uint256"
+    },
+    {
+      "indexed": false,
+      "internalType": "uint256",
+      "name": "amount1In",
+      "type": "uint256"
+    },
+    {
+      "indexed": false,
+      "internalType": "uint256",
+      "name": "amount0Out",
+      "type": "uint256"
+    },
+    {
+      "indexed": false,
+      "internalType": "uint256",
+      "name": "amount1Out",
+      "type": "uint256"
     },
     {
       "indexed": true,
       "internalType": "address",
       "name": "to",
       "type": "address"
-    },
-    {
-      "indexed": false,
-      "internalType": "uint256",
-      "name": "value",
-      "type": "uint256"
     }
   ],
-  "name": "Transfer",
+  "name": "Swap",
   "type": "event"
 };
 
@@ -69,6 +88,29 @@ class Cache {
     this.pools = {};
   }
 
+  async getToken0Info(lpTokenAddress) {
+    const lpTokenContract = new web3.eth.Contract(
+      JoePairABI,
+      lpTokenAddress,
+    );
+
+    const token0Address = await lpTokenContract.methods.token0().call();
+    const token0Contract = new web3.eth.Contract(
+      ERC20ABI,
+      token0Address,
+    );
+
+    let [decimals, price] = await Promise.all([
+      token0Contract.methods.decimals().call(),
+      getPrice(token0Address, false),
+    ]);
+
+    decimals = new BigNumber(decimals.toString());
+    price = (new BigNumber(price.toString())).div(BN_1E18);
+
+    return { decimals, price };
+  }
+
   async calculate24HourHistory(lpTokenAddress) {
     // query the moralis API endpoint for transaction history for a given LP token pair
     // returns an array where each element represents 1 hour of transaction volume
@@ -85,14 +127,18 @@ class Cache {
       // construct the query
       const queryEndpoint = `${moralisEndpoint}/${lpTokenAddress}/events`;
       const queryParams = `?chain=avalanche&from_date=${startDate.toISOString()}` +
-        `&to_date=${endDate.toISOString()}&topic=${transferTopic}`;
+        `&to_date=${endDate.toISOString()}&topic=${swapTopic}`;
 
       const fullQuery = `${queryEndpoint}${queryParams}`;
-      promises.push(axios.post(fullQuery, transferABI, queryConfig));
+      promises.push(axios.post(fullQuery, swapABI, queryConfig));
 
       // move the end time back for the next query
       startTime = endTime;
     }
+
+    // get the decimals and price of token0 - it doesn't matter which token we use for the
+    // tranasction calculation as long as we're consistent
+    const { decimals, price } = await this.getToken0Info(lpTokenAddress);
 
     const hourlyTransactionVolume = [];
     const transactionResults = await Promise.all(promises);
@@ -101,8 +147,16 @@ class Cache {
       let runningTotal = new BigNumber(0);
 
       transactions.forEach((transaction) => {
-        let { value } = transaction.data;
-        value = (new BigNumber(value)).div(BN_1E18);
+        let { amount0In, amount0Out } = transaction.data;
+
+        // convert the amount of token0 used in the swap transaction to a value, then add that to
+        // the running total for this hour of transactions
+        let txAmount = amount0In === "0" ? amount0Out : amount0In;
+        txAmount = (new BigNumber(txAmount)).div(
+          new BigNumber(10).pow(decimals)
+        );
+        const value = txAmount.times(price);
+
         runningTotal = runningTotal.plus(value);
       });
 
@@ -129,7 +183,7 @@ class Cache {
       `&to_date=${endTime.toISOString()}&topic=${transferTopic}`;
     const fullQuery = `${queryEndpoint}${queryParams}`;
 
-    const response = await axios.post(fullQuery, transferABI, queryConfig);
+    const response = await axios.post(fullQuery, swapABI, queryConfig);
     const { result: transactions } = response.data;
     let runningTotal = new BigNumber(0);
 
@@ -168,13 +222,13 @@ class Cache {
       total24HourVolume = total24HourVolume.plus(hour);
     });
 
-    return total24HourVolume.decimalPlaces(2);
+    return total24HourVolume.decimalPlaces(4);
   }
 
   async getTransactionFees(lpTokenAddress) {
     const transactionVolume = await this.getTransactionHistory(lpTokenAddress);
     const fees = transactionVolume.times(FEES_PERCENT);
-    return fees;
+    return fees.decimalPlaces(4);
   }
 
   async getTVLByToken(lpTokenAddress) {
@@ -242,6 +296,13 @@ class Cache {
     const tvlToken1 = (new BigNumber(token1Price)).times(balanceToken1);
     return tvlToken0.plus(tvlToken1).decimalPlaces(2);
   }
+
+  async getPoolAPR(lpTokenAddress) {
+    const transactionFees = await this.getTransactionFees(lpTokenAddress);
+    const tokenTVL = await this.getTVLByToken(lpTokenAddress);
+    const APR = transactionFees.times(DAYS_PER_YEAR).div(tokenTVL).times(100);
+    return APR.decimalPlaces(4);
+  }
 }
 
 async function getTVLByToken(ctx) {
@@ -265,6 +326,13 @@ async function getTransactionFees(ctx) {
   }
 }
 
+async function getPoolAPR(ctx) {
+  if (!("lpToken" in ctx.params)) ctx.body = "";
+  else {
+    ctx.body = (await cache.getPoolAPR(ctx.params.lpToken));
+  }
+}
+
 async function TVLHelper(tokenAddress) {
   return (await cache.getTVLByToken(tokenAddress));
 }
@@ -275,4 +343,5 @@ module.exports = {
   TVLHelper,
   get24HourTransactionVolume,
   getTransactionFees,
+  getPoolAPR,
 };
