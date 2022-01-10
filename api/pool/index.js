@@ -8,6 +8,7 @@ const { getPrice } = require("../price/index");
 // import necessary contract ABIs
 const ERC20ABI = require("../../abis/ERC20ContractABI.json");
 const JoePairABI = require("../../abis/JoePairABI.json");
+const JoeFactoryABI = require("../../abis/JoeFactoryContractABI.json");
 
 const {
   API_KEY,
@@ -16,6 +17,7 @@ const {
   BN_1,
   DAYS_PER_YEAR,
   FEES_PERCENT,
+  JOE_FACTORY_ADDRESS,
   SECONDS_PER_YEAR,
 } = require("../../constants");
 
@@ -80,6 +82,12 @@ const queryConfig = {
 // setup provider
 const web3 = web3Factory(AVAX_CHAIN_ID);
 
+// instantiate smart contract objects that do not change
+const JoeFactoryContract = new web3.eth.Contract(
+  JoeFactoryABI,
+  JOE_FACTORY_ADDRESS,
+);
+
 class Cache {
   dayInMs = 86400000 // 24 hours
   minElapsedTimeInMs = 3600000; // 1 hour
@@ -109,6 +117,42 @@ class Cache {
     price = (new BigNumber(price.toString())).div(BN_1E18);
 
     return { decimals, price };
+  }
+
+  async verifyLPToken(lpTokenAddress) {
+    let lpTokenContract;
+    try {
+      lpTokenContract = new web3.eth.Contract(JoePairABI, lpTokenAddress);
+    } catch {
+      return false;
+    }
+
+    // optimistically attempt to retrieve the two tokens from the lp token contract
+    let results = await Promise.allSettled([
+      lpTokenContract.methods.token0().call(),
+      lpTokenContract.methods.token1().call(),
+    ]);
+
+    if (results[0].status === "rejected" || results[1].status === "rejected") {
+      return false;
+    }
+
+    // pull the token addresses out of the promise result array
+    const { value: token0Address } = results[0];
+    const { value: token1Address } = results[1];
+
+    const tokenAddressFromFactory = await JoeFactoryContract.methods
+      .getPair(token0Address, token1Address).call();
+
+    // compare the lp token address returned from the JoeFactory to the lp token address that was
+    // provided to see if they are the same
+    if (tokenAddressFromFactory.toLowerCase() !== web3.utils.toHex(lpTokenAddress.toLowerCase())) {
+      // address is not the same, return false
+      return false;
+    }
+    else {
+      return true;
+    }
   }
 
   async calculate24HourHistory(lpTokenAddress) {
@@ -165,7 +209,7 @@ class Cache {
 
     // save the hourly transaction volume for this lp token in the cache, along with the date and
     // the position of the most recent hour of transaction volume, which will be length - 1
-    this.pools[lpTokenAddress] = {
+    this.pools[lpTokenAddress.toLowerCase()] = {
       hourlyTransactionVolume,
       dateUpdated: currTime,
       currPosition: hourlyTransactionVolume.length - 1,
@@ -196,6 +240,7 @@ class Cache {
 
     // save the new hourly transaction volume into the (current slot + 1) % 24 slot since we know
     // that has to be the oldest data
+    lpTokenAddress = lpTokenAddress.toLowerCase();
     const newPosition = this.pools[lpTokenAddress].currPosition + 1 % 24; // circular buffer
     this.pools[lpTokenAddress].hourlyTransactionVolume[newPosition] = runningTotal;
     this.pools[lpTokenAddress].dateUpdated = currTime;
@@ -203,10 +248,10 @@ class Cache {
   }
 
   async getTransactionHistory(lpTokenAddress) {
-    // TODO: verify that the passed-in address is actually a JOE LP token, this can be accomplished
-    // by: 1. getting the token0 and token1 of the JoePair (try-catch this) 2. using the two tokens
-    // put them into the Joe Factory contract and seeing if you get the same lp token address back
-    // (if any) as the one that was passed in
+    const isLPToken = await this.verifyLPToken(lpTokenAddress);
+    if (!isLPToken) { return "Token Address passed in is not an LP Token" };
+
+    lpTokenAddress = lpTokenAddress.toLowerCase();
     if (!(this.pools[lpTokenAddress])) {
       // if this lp token has not been initialized, initialize the entire 24 hour transaction
       // volume array
@@ -226,16 +271,21 @@ class Cache {
   }
 
   async getTransactionFees(lpTokenAddress) {
+    const isLPToken = await this.verifyLPToken(lpTokenAddress);
+    if (!isLPToken) { return "Token Address passed in is not an LP Token" };
+
     const transactionVolume = await this.getTransactionHistory(lpTokenAddress);
     const fees = transactionVolume.times(FEES_PERCENT);
     return fees.decimalPlaces(4);
   }
 
   async getTVLByToken(lpTokenAddress) {
-    const lpTokenContract = new web3.eth.Contract(
-      JoePairABI,
-      lpTokenAddress,
-    );
+    let lpTokenContract;
+    try {
+      lpTokenContract = new web3.eth.Contract(JoePairABI, lpTokenAddress);
+    } catch {
+      return "Address passed in is not an LP token";
+    }
 
     // optimistically attempt to retrieve the two tokens from the lp token contract
     let results = await Promise.allSettled([
@@ -298,6 +348,9 @@ class Cache {
   }
 
   async getPoolAPR(lpTokenAddress) {
+    const isLPToken = await this.verifyLPToken(lpTokenAddress);
+    if (!isLPToken) { return "Token Address passed in is not an LP Token" };
+
     const transactionFees = await this.getTransactionFees(lpTokenAddress);
     const tokenTVL = await this.getTVLByToken(lpTokenAddress);
     const APR = transactionFees.times(DAYS_PER_YEAR).div(tokenTVL).times(100);
