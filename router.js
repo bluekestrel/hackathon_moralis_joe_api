@@ -51,6 +51,8 @@ router.get('/pool/APR/:lpToken', pool.getPoolAPR); // v2 route
 
 // stake info routes
 router.get('/stake/fees', stake.getTotalFees); // v2 route
+router.get('/stake/APR', stake.getAPR); // v2 route
+router.get('/stake/APY', stake.getAPY); // v2 route
 
 router.get('/', noop);
 

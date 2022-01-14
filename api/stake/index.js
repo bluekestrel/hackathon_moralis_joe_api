@@ -4,8 +4,10 @@ const axios = require("axios");
 const BigNumber = require("bignumber.js");
 const { web3Factory } = require("../../utils/web3");
 const { getPrice } = require("../price/index");
+const { calculateAPYDailyCompund } = require("../../utils/helperFunctions");
 
 // import necessary contract ABIs
+const ERC20ABI = require("../../abis/ERC20ContractABI.json");
 const JoeMakerV3ABI = require("../../abis/JoeMakerV3ABI.json");
 const JoeBarABI = require("../../abis/JoeBarContractABI.json");
 const JoeFactoryABI = require("../../abis/JoeFactoryContractABI.json");
@@ -94,6 +96,11 @@ const xJoeContract = new web3.eth.Contract(
   XJOE_ADDRESS,
 );
 
+const JoeContract = new web3.eth.Contract(
+  ERC20ABI,
+  JOE_ADDRESS,
+);
+
 class Cache {
   dayInMs = 86400000 // 24 hours
   minElapsedTimeInMs = 3600000; // 1 hour
@@ -146,7 +153,7 @@ class Cache {
 
     // store the calculated information into stakeData
     this.stakeData = {
-      fees,
+      fees: fees.decimalPlaces(4),
       lastUpdated: Date.now(),
     }
   }
@@ -163,13 +170,64 @@ class Cache {
 
     return this.stakeData.fees;
   }
+
+  async calculateAPR() {
+    // get the total value of fees (in USD) for the last 24 hours
+    const totalFees = await this.getTotalFees();
+
+    // get the price of JOE, the totalSupply of xJOE, the decimals in xJOE, and the number of JOE
+    // tokens that the JoeBar contract (aka xJOE) holds
+    let [
+      joePrice,
+      xJoeSupply,
+      xJoeDecimals,
+      joeBalance,
+    ] = await Promise.all([
+      getPrice(JOE_ADDRESS, false),
+      xJoeContract.methods.totalSupply().call(),
+      xJoeContract.methods.decimals().call(),
+      JoeContract.methods.balanceOf(xJoeContract._address).call(),
+    ]);
+
+    joePrice = new BigNumber(joePrice.toString()).div(BN_1E18);
+    xJoeSupply = (new BigNumber(xJoeSupply.toString())).div(
+      new BigNumber(10).pow(new BigNumber(xJoeDecimals.toString()))
+    );
+
+    // we can use xJoeDecimals for converting the JOE balance because these two tokens have the same
+    // decimals value of 18
+    joeBalance = (new BigNumber(joeBalance.toString())).div(
+      new BigNumber(10).pow(new BigNumber(xJoeDecimals.toString()))
+    );
+
+    const numerator = totalFees.div(xJoeSupply).times(DAYS_PER_YEAR);
+    const denominator = joeBalance.div(xJoeSupply).times(joePrice);
+    const APR = numerator.div(denominator).times(100);
+    return APR.decimalPlaces(4);
+  }
+
+  async calculateAPY() {
+    const percentAPR = await this.calculateAPR();
+    const APY = calculateAPYDailyCompund(percentAPR);
+    return APY.decimalPlaces(4);
+  }
 }
 
 async function getTotalFees(ctx) {
   ctx.body = (await cache.getTotalFees());
 }
 
+async function getAPR(ctx) {
+  ctx.body = (await cache.calculateAPR());
+}
+
+async function getAPY(ctx) {
+  ctx.body = (await cache.calculateAPY());
+}
+
 const cache = new Cache();
 module.exports = {
   getTotalFees,
+  getAPR,
+  getAPY,
 }
