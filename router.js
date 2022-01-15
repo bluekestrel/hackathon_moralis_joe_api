@@ -1,8 +1,17 @@
 'use strict';
 
 const Router = require('koa-router');
-const router = new Router();
 
+// setup two routers with version prefixes
+const routerV1 = new Router({
+  prefix: '/v1',
+});
+
+const routerV2 = new Router({
+  prefix: '/v2',
+});
+
+// import the logic for each of the different api routes
 const noop = require('./api/noop');
 const supply = require('./api/supply');
 const nftHat = require('./api/nft/hat');
@@ -13,47 +22,52 @@ const pool = require('./api/pool');
 const stake = require('./api/stake');
 
 // supply info routes
-router.get('/supply/circulating', supply.circulatingSupply);
-router.get('/supply/circulating-adjusted', supply.circulatingSupplyAdjusted);
-router.get('/supply/total', supply.totalSupply);
-router.get('/supply/max', supply.maxSupply);
+routerV1.get('/supply/circulating', supply.circulatingSupply);
+routerV1.get('/supply/circulating-adjusted', supply.circulatingSupplyAdjusted);
+routerV1.get('/supply/total', supply.totalSupply);
+routerV1.get('/supply/max', supply.maxSupply);
 
 // nft info routes
-router.get('/nft/hat', nftHat.infos);
-router.get('/nft/hat/:id', nftHat.infos)
+routerV1.get('/nft/hat', nftHat.infos);
+routerV1.get('/nft/hat/:id', nftHat.infos)
 
 // token price routes
-router.get('/priceavax/:tokenAddress', price.derivedPriceOfToken)
-router.get('/priceusd/:tokenAddress', price.priceOfToken)
+routerV1.get('/priceavax/:tokenAddress', price.derivedPriceOfToken)
+routerV1.get('/priceusd/:tokenAddress', price.priceOfToken)
 
 // banker joe info routes
-router.get('/lending/list', bankerJoe.getLendingPools) // TODO: all new routes will have a v2 prefixed to the path
-router.get('/lending/supply', bankerJoe.totalSupply)
-router.get('/lending/borrow', bankerJoe.totalBorrow)
-// TODO: swap routes so user-provided value is LAST
-router.get('/lending/:lendingPool/supplyRateAPY', bankerJoe.getSupplyRateAPY); // v2 route
-router.get('/lending/:lendingPool/supplyRewardsAPR', bankerJoe.getSupplyRewardsAPR); // v2 route
-router.get('/lending/:lendingPool/borrowRateAPY', bankerJoe.getBorrowRateAPY); // v2 route
-router.get('/lending/:lendingPool/borrowRewardsAPR', bankerJoe.getBorrowRewardsAPR); // v2 route
+routerV1.get('/lending/list', bankerJoe.getLendingPools)
+routerV1.get('/lending/supply', bankerJoe.totalSupply)
+routerV1.get('/lending/borrow', bankerJoe.totalBorrow)
+
+// V2 routes are below, starting with more banker joe info routes
+routerV2.get('/lending/depositAPY/:lendingPool', bankerJoe.getSupplyRateAPY);
+routerV2.get('/lending/depositRewardsAPR/:lendingPool', bankerJoe.getSupplyRewardsAPR);
+routerV2.get('/lending/borrowAPY/:lendingPool', bankerJoe.getBorrowRateAPY);
+routerV2.get('/lending/borrowRewardsAPR/:lendingPool', bankerJoe.getBorrowRewardsAPR);
 
 // farms info routes
-router.get('/farm/list', farm.listPools); // v2 route
-router.get('/farm/poolweight/:lpToken', farm.getPoolWeight); // v2 route
-router.get('/farm/APR/:lpToken', farm.getFarmAPR); // v2 route
-router.get('/farm/liquidity/:lpToken', farm.getFarmLiquidity); // v2 route
-router.get('/farm/bonusAPR/:lpToken', farm.getBonusAPR); // v2 route
+routerV2.get('/farm/list', farm.listPools);
+routerV2.get('/farm/poolweight/:lpToken', farm.getPoolWeight);
+routerV2.get('/farm/APR/:lpToken', farm.getFarmAPR);
+routerV2.get('/farm/liquidity/:lpToken', farm.getFarmLiquidity);
+routerV2.get('/farm/bonusAPR/:lpToken', farm.getBonusAPR);
 
 // pools info routes
-router.get('/pool/liquidity/:lpToken', pool.getTVLByToken); // v2 route
-router.get('/pool/volume/:lpToken', pool.get24HourTransactionVolume); // v2 route
-router.get('/pool/fees/:lpToken', pool.getTransactionFees); // v2 route
-router.get('/pool/APR/:lpToken', pool.getPoolAPR); // v2 route
+routerV2.get('/pool/liquidity/:lpToken', pool.getTVLByToken);
+routerV2.get('/pool/volume/:lpToken', pool.get24HourTransactionVolume);
+routerV2.get('/pool/fees/:lpToken', pool.getTransactionFees);
+routerV2.get('/pool/APR/:lpToken', pool.getPoolAPR);
 
 // stake info routes
-router.get('/stake/fees', stake.getTotalFees); // v2 route
-router.get('/stake/APR', stake.getAPR); // v2 route
-router.get('/stake/APY', stake.getAPY); // v2 route
+routerV2.get('/stake/fees', stake.getTotalFees);
+routerV2.get('/stake/APR', stake.getAPR);
+routerV2.get('/stake/APY', stake.getAPY);
 
-router.get('/', noop);
+routerV1.get('/', noop);
+routerV2.get('/', noop);
 
-module.exports = router;
+module.exports = {
+  routerV1,
+  routerV2,
+};

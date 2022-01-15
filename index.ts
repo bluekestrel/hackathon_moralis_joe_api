@@ -10,7 +10,7 @@ const etag = require("koa-etag");
 
 const rt = require("./middleware/rt");
 const powered = require("./middleware/powered");
-const router = require("./router");
+const { routerV1, routerV2 } = require("./router");
 
 const index = new Koa();
 
@@ -42,8 +42,10 @@ index.use(body());
 
 index.context.cache = {};
 
-index.use(router.routes());
-index.use(router.allowedMethods());
+index.use(routerV1.routes());
+index.use(routerV1.allowedMethods());
+index.use(routerV2.routes());
+index.use(routerV2.allowedMethods());
 
 const port = process.env.PORT || 3000;
 index.listen(port);
