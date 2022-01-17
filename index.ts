@@ -7,12 +7,18 @@ const body = require("koa-bodyparser");
 const cors = require("@koa/cors");
 const conditional = require("koa-conditional-get");
 const etag = require("koa-etag");
+const swagger = require("swagger2");
+const { ui, validate } = require("swagger2-koa");
 
 const rt = require("./middleware/rt");
 const powered = require("./middleware/powered");
 const { routerV1, routerV2 } = require("./router");
 
 const index = new Koa();
+
+// setup swagger documentation and route
+const swaggerDocs = swagger.loadDocumentSync("./docs/joe-api.yaml");
+index.use(ui(swaggerDocs, "/docs"));
 
 // setup simple in-memory ratelimit
 const db = new Map();

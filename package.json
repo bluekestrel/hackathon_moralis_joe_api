@@ -5,7 +5,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "node index.ts",
-    "start-dev": "ts-node-dev --respawn --transpile-only index.ts"
+    "start-dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "docs-gen": "speccy resolve ./docs/swagger.yaml -o ./docs/joe-api.yaml"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,8 @@
     "koa-helmet": "^6.1.0",
     "koa-ratelimit": "^5.0.1",
     "koa-router": "^10.1.1",
+    "swagger2": "^3.0.0",
+    "swagger2-koa": "^3.0.0",
     "web3": "^1.6.0"
   },
   "lint-staged": {
@@ -31,6 +34,7 @@
     "*.json": "prettier --write"
   },
   "devDependencies": {
+    "speccy": "^0.11.0",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.4"

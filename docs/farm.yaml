@@ -1,0 +1,136 @@
+list:
+  get:
+    tags:
+      - "Farm"
+    summary: "Get list of farms"
+    description: "Get a list of all farms (active or not) from the Masterchef V2 and V3 AMMs"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Object containing farm addresses and pool IDs split by AMM contract address"
+        schema:
+          $ref: "#/definitions/ListResult"
+      500:
+        $ref: '#/responses/500'
+
+liquidity:
+  get:
+    tags:
+      - "Farm"
+    summary: "Get liquidity (TVL) for a farm"
+    description: "Get the Total Value Locked (TVL) of a desired farm given its address"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "TVL as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+poolweight:
+  get:
+    tags:
+      - "Farm"
+    summary: "Get pool weight for a farm"
+    description: "Get the pool weight aka the multiplier of a desired farm given its address"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Pool weight as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+APR:
+  get:
+    tags:
+      - "Farm"
+    summary: "Get the APR for a farm"
+    description: "Get 24 hr APR for a farm"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APR as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+bonusAPR:
+  get:
+    tags:
+      - "Farm"
+    summary: "Get bonus APR for a farm"
+    description: "Get 24 hr bonus APR for a farm, if applicable"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Bonus APR as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+responses:
+  500:
+    description: Internal Server Error
+
+definitions:
+  Result:
+    type: "object"
+    properties:
+      result:
+        type: "integer"
+        enum:
+          - 10.00
+  ListResult:
+    type: "object"
+    properties:
+      "0xd6a4F121CA35509aF06A0Be99093d08462f53052":
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              token:
+                type: "string"
+                enum:
+                  - "0x781655d802670bbA3c89aeBaaEa59D3182fD755D"
+              pid:
+                type: "integer"
+                enum:
+                  - 43
+      "0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00":
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              token:
+                type: "string"
+                enum:
+                  - "0x9155f441FFDfA81b13E385bfAc6b3825C05184Ee"
+              pid:
+                type: "integer"
+                enum:
+                  - 36
+  tokenParam:
+    - in: path
+      name: lpToken
+      required: true
+      schema:
+        type: "string"
+      description: "Address of desired farm (LP Token address)"

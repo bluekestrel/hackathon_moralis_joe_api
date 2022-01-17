@@ -1,0 +1,60 @@
+fees:
+  get:
+    tags:
+      - "Stake"
+    summary: "Get value of trading fees"
+    description: "Get the total value (in USD) of the past 24 hours' worth of trading fees"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "accumulated trading fees from all pools"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+APR:
+  get:
+    tags:
+      - "Stake"
+    summary: "Get staking APR"
+    description: "Get approximate 24hr APR of JOE staking"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APR as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+APY:
+  get:
+    tags:
+      - "Stake"
+    summary: "Get staking APY"
+    description: "Get approximate 24hr APY of JOE staking"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APY as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+responses:
+  500:
+    description: Internal Server Error
+
+definitions:
+  Result:
+    type: "object"
+    properties:
+      result:
+        type: "integer"
+        enum:
+          - 10.00

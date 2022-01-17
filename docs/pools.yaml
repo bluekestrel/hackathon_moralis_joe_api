@@ -1,0 +1,91 @@
+liquidity:
+  get:
+    tags:
+      - "Pools"
+    summary: "Get liquidity (TVL) for a pool"
+    description: "Get the Total Value Locked (TVL) of a desired LP token given its address"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "TVL as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+volume:
+  get:
+    tags:
+      - "Pools"
+    summary: "Get transaction volume for a pool"
+    description: "Get the total value (in USD) of all transactions that have taken place for a desired LP token in the past 24 hours"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Transaction volume as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+fees:
+  get:
+    tags:
+      - "Pools"
+    summary: "Get transaction fees for a pool"
+    description: "Get the total value (in USD) of the accumulated transaction fees for a desired LP token in the past 24 hours"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Transaction fees as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+APR:
+  get:
+    tags:
+      - "Pools"
+    summary: "Get APR for a pool"
+    description: "Get 24hr APR for a pool"
+    parameters:
+      $ref: '#/definitions/tokenParam'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APR as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+responses:
+  500:
+    description: Internal Server Error
+
+definitions:
+  Result:
+    type: "object"
+    properties:
+      result:
+        type: "integer"
+        enum:
+          - 10.00
+  tokenParam:
+    - in: path
+      name: lpToken
+      required: true
+      schema:
+        type: "string"
+      description: "Address of desired pool (LP Token address)"

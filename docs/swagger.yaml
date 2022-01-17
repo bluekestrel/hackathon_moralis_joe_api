@@ -1,0 +1,30 @@
+swagger: "2.0"
+info:
+  title: "Trader Joe API"
+schemes:
+  - "http"
+paths:
+  /v2/farm/list:
+    $ref: "farm.yaml#/list"
+  /v2/farm/poolweight/{lpToken}:
+    $ref: "farm.yaml#/poolweight"
+  /v2/farm/liquidity/{lpToken}:
+    $ref: "farm.yaml#/liquidity"
+  /v2/farm/APR/{lpToken}:
+    $ref: "farm.yaml#/APR"
+  /v2/farm/bonusAPR/{lpToken}:
+    $ref: "farm.yaml#/bonusAPR"
+  /v2/pool/liquidity/{lpToken}:
+    $ref: "pools.yaml#/liquidity"
+  /v2/pool/volume/{lpToken}:
+    $ref: "pools.yaml#/volume"
+  /v2/pool/fees/{lpToken}:
+    $ref: "pools.yaml#/fees"
+  /v2/pool/APR/{lpToken}:
+    $ref: "pools.yaml#/APR"
+  /v2/stake/fees:
+    $ref: "stake.yaml#/fees"
+  /v2/stake/APR:
+    $ref: "stake.yaml#/APR"
+  /v2/stake/APY:
+    $ref: "stake.yaml#/APY"
