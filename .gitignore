@@ -30,3 +30,4 @@ pnpm-debug.log*
 coverage
 
 .vercel
+docs/joe-api.yaml

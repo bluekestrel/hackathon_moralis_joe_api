@@ -1,0 +1,37 @@
+hat:
+  get:
+    tags:
+      - "NFT"
+    summary: "Get info of JoeHat NFT"
+    description: ""
+    parameters:
+      $ref: "#/definitions/id"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Information about JoeHat NFT"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+responses:
+  500:
+    description: Internal Server Error
+
+definitions:
+  id:
+    - in: path
+      name: id
+      required: false
+      schema:
+        type: "string"
+      description: "ID of NFT"
+  Result:
+    type: "object"
+    properties:
+      result:
+        type: "integer"
+        enum:
+          - 10.00

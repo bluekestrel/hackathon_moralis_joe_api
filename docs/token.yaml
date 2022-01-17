@@ -1,0 +1,55 @@
+priceavax:
+  get:
+    tags:
+      - "Token"
+    summary: "Get price of token in AVAX"
+    description: "Get the price of a given token address in AVAX (in NanoAVAX measurement)"
+    parameters:
+      $ref: "#/definitions/tokenAddress"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Price of token (derived in AVAX), as an integer in NanoAVAX"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+priceusd:
+  get:
+    tags:
+      - "Token"
+    summary: "Get price of token in USD"
+    description: "Get the price of a given token in USD (in NanoAVAX measurement)"
+    parameters:
+      $ref: "#/definitions/tokenAddress"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Price of token in USD, as an integer in NanoAVAX"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+responses:
+  500:
+    description: Internal Server Error
+
+definitions:
+  tokenAddress:
+    - in: path
+      name: tokenAddress
+      required: true
+      schema:
+        type: "string"
+      description: "Address of desired ERC20 token"
+  Result:
+    type: "object"
+    properties:
+      result:
+        type: "integer"
+        enum:
+          - 10.00

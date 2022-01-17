@@ -1,0 +1,76 @@
+circulating:
+  get:
+    tags:
+      - "Supply"
+    summary: "Get circulating supply of JOE tokens"
+    description: "Get the current circulating supply of JOE tokens in NanoAVAX"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Number of circulating JOE tokens, as an integer in NanoAVAX"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+circulating-adjusted:
+  get:
+    tags:
+      - "Supply"
+    summary: "Get adjusted circulating supply of JOE tokens"
+    description: "Get the current circulating supply of JOE tokens, adjusted by number of decimals the JOE token has"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Number of circulating JOE tokens as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+total:
+  get:
+    tags:
+      - "Supply"
+    summary: "Get total supply of JOE tokens"
+    description: "Get the total supply of JOE tokens in NanoAVAX"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Total supply of JOE tokens, as an integer in NanoAVAX"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+max:
+  get:
+    tags:
+      - "Supply"
+    summary: "Get max supply of JOE tokens"
+    description: "Get the max supply of JOE tokens in NanoAVAX"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Max supply of JOE tokens, as an integer in NanoAVAX"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+responses:
+  500:
+    description: Internal Server Error
+
+definitions:
+  Result:
+    type: "object"
+    properties:
+      result:
+        type: "integer"
+        enum:
+          - 10.00

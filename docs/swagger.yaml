@@ -4,6 +4,34 @@ info:
 schemes:
   - "http"
 paths:
+  /v1/supply/circulating:
+    $ref: "supply.yaml#/circulating"
+  /v1/supply/circulating-adjusted:
+    $ref: "supply.yaml#/circulating-adjusted"
+  /v1/supply/total:
+    $ref: "supply.yaml#/total"
+  /v1/supply/max:
+    $ref: "supply.yaml#/max"
+  /v1/nft/hat/{id}:
+    $ref: "nft.yaml#/hat"
+  /v1/priceavax/{tokenAddress}:
+    $ref: "token.yaml#/priceavax"
+  /v1/priceusd/{tokenAddress}:
+    $ref: "token.yaml#/priceusd"
+  /v1/lending/list:
+    $ref: "bank.yaml#/list"
+  /v1/lending/supply:
+    $ref: "bank.yaml#/supply"
+  /v1/lending/borrow:
+    $ref: "bank.yaml#/borrow"
+  /v2/lending/depositAPY/{lendingPool}:
+    $ref: "bank.yaml#/depositAPY"
+  /v2/lending/depositRewardsAPR/{lendingPool}:
+    $ref: "bank.yaml#/depositRewardsAPR"
+  /v2/lending/borrowAPY/{lendingPool}:
+    $ref: "bank.yaml#/borrowAPY"
+  /v2/lending/borrowRewardsAPR/{lendingPool}:
+    $ref: "bank.yaml#/borrowRewardsAPR"
   /v2/farm/list:
     $ref: "farm.yaml#/list"
   /v2/farm/poolweight/{lpToken}:

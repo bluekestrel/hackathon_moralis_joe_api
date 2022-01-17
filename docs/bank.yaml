@@ -1,0 +1,147 @@
+list:
+  get:
+    tags:
+      - "Bank"
+    summary: "Get a list of available lending pools"
+    description: "Get a list of all lending pools Banker Joe provides"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "List of lending pool addresses"
+        schema:
+          $ref: "#/definitions/AddressListResult"
+      500:
+        $ref: '#/responses/500'
+
+supply:
+  get:
+    tags:
+      - "Bank"
+    summary: "Get total supply value of all lending pools"
+    description: "Get the total value (in USD) of all tokens currently being supplied to Banker Joe"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Total supply value as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+borrow:
+  get:
+    tags:
+      - "Bank"
+    summary: "Get total borrow value of all lending pools"
+    description: "Get the total value (in USD) of all tokens currently being borrowed from Banker Joe"
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "Total borrow value as an integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+depositAPY:
+  get:
+    tags:
+      - "Bank"
+    summary: "Get the deposit APY for a given lending pool"
+    description: "Get the annualized interest earned when depositing to a lending pool (interest is compounded daily)"
+    parameters:
+      $ref: '#/definitions/lendingPool'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APY as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+depositRewardsAPR:
+  get:
+    tags:
+      - "Bank"
+    summary: "Get the deposit rewards APR for a given lending pool"
+    description: "Get the bonus interest earned when depositing to a lending pool"
+    parameters:
+      $ref: '#/definitions/lendingPool'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APR as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+borrowAPY:
+  get:
+    tags:
+      - "Bank"
+    summary: "Get the borrow APY for a given lending pool"
+    description: "Get the annualized interest owed when borrowing from a lending pool (interest is compounded daily)"
+    parameters:
+      $ref: '#/definitions/lendingPool'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APY as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+borrowRewardsAPR:
+  get:
+    tags:
+      - "Bank"
+    summary: "Get the borrow rewards APR for a given lending pool"
+    description: "Get the bonus interest earned when borrowing from a lending pool"
+    parameters:
+      $ref: '#/definitions/lendingPool'
+    produces:
+      - "application/json"
+    responses:
+      200:
+        description: "APR as a percent integer"
+        schema:
+          $ref: "#/definitions/Result"
+      500:
+        $ref: '#/responses/500'
+
+responses:
+  500:
+    description: Internal Server Error
+
+definitions:
+  lendingPool:
+    - in: path
+      name: lendingPool
+      required: true
+      schema:
+        type: "string"
+      description: "Address of desired lending pool"
+  Result:
+    type: "object"
+    properties:
+      result:
+        type: "integer"
+        enum:
+          - 10.00
+  AddressListResult:
+    type: "array"
+    items:
+      type: string
+    example:
+      - "0xC22F01ddc8010Ee05574028528614634684EC29e"
+      - "0x929f5caB61DFEc79a5431a7734a68D714C4633fa"
+      - "..."
