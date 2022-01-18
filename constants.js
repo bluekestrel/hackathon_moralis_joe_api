@@ -22,14 +22,14 @@ function getNetworkInfo(network) {
   if (network && config[network]) {
     // network exists in predefined constants
     return {
-      AVAX_RPC: process.env.AVAX_RPC || config[network].defaultRPC,
+      AVAX_RPC: process.env.AVAX_RPC,
       AVAX_CHAIN_ID: config[network].chainid,
     }
   } else {
     // network is not defined or is not present in the NETWORKS object, default to Avalanche Mainnet
     // C-chain
     return {
-      AVAX_RPC: process.env.AVAX_RPC || config.mainnet.defaultRPC,
+      AVAX_RPC: process.env.AVAX_RPC,
       AVAX_CHAIN_ID: config.mainnet.chainid,
     }
   }
