@@ -11,14 +11,13 @@ const JoePairABI = require("../../abis/JoePairABI.json");
 const JoeFactoryABI = require("../../abis/JoeFactoryContractABI.json");
 
 const {
+  NETWORK,
   API_KEY,
   AVAX_CHAIN_ID,
   BN_1E18,
-  BN_1,
   DAYS_PER_YEAR,
   FEES_PERCENT,
   JOE_FACTORY_ADDRESS,
-  SECONDS_PER_YEAR,
 } = require("../../constants");
 
 const moralisEndpoint = "https://deep-index.moralis.io/api/v2";
@@ -170,7 +169,7 @@ class Cache {
 
       // construct the query
       const queryEndpoint = `${moralisEndpoint}/${lpTokenAddress}/events`;
-      const queryParams = `?chain=avalanche&from_date=${startDate.toISOString()}` +
+      const queryParams = `?chain=${NETWORK}&from_date=${startDate.toISOString()}` +
         `&to_date=${endDate.toISOString()}&topic=${swapTopic}`;
 
       const fullQuery = `${queryEndpoint}${queryParams}`;

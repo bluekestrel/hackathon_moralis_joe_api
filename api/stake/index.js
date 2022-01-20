@@ -13,14 +13,12 @@ const JoeBarABI = require("../../abis/JoeBarContractABI.json");
 const JoeFactoryABI = require("../../abis/JoeFactoryContractABI.json");
 
 const {
+  NETWORK,
   API_KEY,
   AVAX_CHAIN_ID,
   BN_1E18,
-  BN_1,
   DAYS_PER_YEAR,
-  FEES_PERCENT,
   JOE_FACTORY_ADDRESS,
-  SECONDS_PER_YEAR,
   XJOE_ADDRESS,
   JOE_ADDRESS,
 } = require("../../constants");
@@ -129,7 +127,7 @@ class Cache {
 
     // construct the query
     const queryEndpoint = `${moralisEndpoint}/${this.JoeMakerContract._address}/events`;
-    const queryParams = `?chain=avalanche&from_date=${startTime.toISOString()}` +
+    const queryParams = `?chain=${NETWORK}&from_date=${startTime.toISOString()}` +
       `&to_date=${endTime.toISOString()}&topic=${logConvertTopic}`;
     const fullQuery = `${queryEndpoint}${queryParams}`;
 

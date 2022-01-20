@@ -266,9 +266,6 @@ class Cache {
       return 0;
     }
 
-    // TODO: consolidate individual contract calls into an array and await on the array to save
-    // some computation time
-
     // get the total allocation points for the AMM contract (aka the MasterChef contract)
     let result = await contract.methods.totalAllocPoint().call();
     const totalAllocPoints = new BigNumber(result.toString());

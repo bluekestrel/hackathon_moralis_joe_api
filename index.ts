@@ -48,6 +48,26 @@ index.use(body());
 
 index.context.cache = {};
 
+// setup middleware to handle unexpected server errors
+index.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    ctx.type = 'json';
+    ctx.status = err.statusCode || err.status || 500;
+    ctx.body = {
+      status: 'error',
+    };
+
+    if (ctx.status == 500) {
+      ctx.body.message = "Internal Server Error";
+    } else {
+      ctx.body.message = err.message;
+    }
+  }
+});
+
+
 index.use(routerV1.routes());
 index.use(routerV1.allowedMethods());
 index.use(routerV2.routes());

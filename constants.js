@@ -30,7 +30,7 @@ function getNetworkInfo(network) {
     // C-chain
     return {
       AVAX_RPC: process.env.AVAX_RPC,
-      AVAX_CHAIN_ID: config.mainnet.chainid,
+      AVAX_CHAIN_ID: config.avalanche.chainid,
     }
   }
 }
@@ -41,7 +41,7 @@ function getConfigValue(network, key) {
   if (network && config[network]) {
     return config[network][key];
   } else {
-    return config.mainnet[key];
+    return config.avalanche[key];
   }
 }
 
@@ -53,6 +53,7 @@ const options = CLA(optionDefinitions);
 
 // get network info
 const { AVAX_RPC, AVAX_CHAIN_ID } = getNetworkInfo(options.network);
+const NETWORK = options?.network ? options.network : 'avalanche';
 
 // get contract addresses
 const {
@@ -77,6 +78,7 @@ const {
 const TEAM_TREASURY_WALLETS = getConfigValue(options.network, 'team_treasury_wallets');
 
 module.exports = {
+  NETWORK,
   API_KEY,
   AVAX_RPC,
   AVAX_CHAIN_ID,

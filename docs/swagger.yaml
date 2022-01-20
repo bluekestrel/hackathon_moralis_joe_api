@@ -4,20 +4,24 @@ info:
 schemes:
   - "http"
 paths:
-  /v1/supply/circulating:
-    $ref: "supply.yaml#/circulating"
-  /v1/supply/circulating-adjusted:
-    $ref: "supply.yaml#/circulating-adjusted"
-  /v1/supply/total:
-    $ref: "supply.yaml#/total"
-  /v1/supply/max:
-    $ref: "supply.yaml#/max"
-  /v1/nft/hat/{id}:
-    $ref: "nft.yaml#/hat"
-  /v1/priceavax/{tokenAddress}:
-    $ref: "token.yaml#/priceavax"
-  /v1/priceusd/{tokenAddress}:
-    $ref: "token.yaml#/priceusd"
+  /v2/pool/liquidity/{lpToken}:
+    $ref: "pools.yaml#/liquidity"
+  /v2/pool/volume/{lpToken}:
+    $ref: "pools.yaml#/volume"
+  /v2/pool/fees/{lpToken}:
+    $ref: "pools.yaml#/fees"
+  /v2/pool/APR/{lpToken}:
+    $ref: "pools.yaml#/APR"
+  /v2/farm/list:
+    $ref: "farm.yaml#/list"
+  /v2/farm/poolweight/{lpToken}:
+    $ref: "farm.yaml#/poolweight"
+  /v2/farm/liquidity/{lpToken}:
+    $ref: "farm.yaml#/liquidity"
+  /v2/farm/APR/{lpToken}:
+    $ref: "farm.yaml#/APR"
+  /v2/farm/bonusAPR/{lpToken}:
+    $ref: "farm.yaml#/bonusAPR"
   /v1/lending/list:
     $ref: "bank.yaml#/list"
   /v1/lending/supply:
@@ -32,27 +36,23 @@ paths:
     $ref: "bank.yaml#/borrowAPY"
   /v2/lending/borrowRewardsAPR/{lendingPool}:
     $ref: "bank.yaml#/borrowRewardsAPR"
-  /v2/farm/list:
-    $ref: "farm.yaml#/list"
-  /v2/farm/poolweight/{lpToken}:
-    $ref: "farm.yaml#/poolweight"
-  /v2/farm/liquidity/{lpToken}:
-    $ref: "farm.yaml#/liquidity"
-  /v2/farm/APR/{lpToken}:
-    $ref: "farm.yaml#/APR"
-  /v2/farm/bonusAPR/{lpToken}:
-    $ref: "farm.yaml#/bonusAPR"
-  /v2/pool/liquidity/{lpToken}:
-    $ref: "pools.yaml#/liquidity"
-  /v2/pool/volume/{lpToken}:
-    $ref: "pools.yaml#/volume"
-  /v2/pool/fees/{lpToken}:
-    $ref: "pools.yaml#/fees"
-  /v2/pool/APR/{lpToken}:
-    $ref: "pools.yaml#/APR"
   /v2/stake/fees:
     $ref: "stake.yaml#/fees"
   /v2/stake/APR:
     $ref: "stake.yaml#/APR"
   /v2/stake/APY:
     $ref: "stake.yaml#/APY"
+  /v1/nft/hat/{id}:
+    $ref: "nft.yaml#/hat"
+  /v1/priceavax/{tokenAddress}:
+    $ref: "token.yaml#/priceavax"
+  /v1/priceusd/{tokenAddress}:
+    $ref: "token.yaml#/priceusd"
+  /v1/supply/circulating:
+    $ref: "supply.yaml#/circulating"
+  /v1/supply/circulating-adjusted:
+    $ref: "supply.yaml#/circulating-adjusted"
+  /v1/supply/total:
+    $ref: "supply.yaml#/total"
+  /v1/supply/max:
+    $ref: "supply.yaml#/max"
