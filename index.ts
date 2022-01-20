@@ -10,6 +10,7 @@ const etag = require("koa-etag");
 const swagger = require("swagger2");
 const { ui, validate } = require("swagger2-koa");
 
+const error = require("./middleware/error");
 const rt = require("./middleware/rt");
 const powered = require("./middleware/powered");
 const { routerV1, routerV2 } = require("./router");
@@ -45,28 +46,9 @@ index.use(helmet());
 index.use(cors({ origin: "*" }));
 index.use(powered);
 index.use(body());
+index.use(error);
 
 index.context.cache = {};
-
-// setup middleware to handle unexpected server errors
-index.use(async (ctx, next) => {
-  try {
-    await next();
-  } catch (err) {
-    ctx.type = 'json';
-    ctx.status = err.statusCode || err.status || 500;
-    ctx.body = {
-      status: 'error',
-    };
-
-    if (ctx.status == 500) {
-      ctx.body.message = "Internal Server Error";
-    } else {
-      ctx.body.message = err.message;
-    }
-  }
-});
-
 
 index.use(routerV1.routes());
 index.use(routerV1.allowedMethods());
