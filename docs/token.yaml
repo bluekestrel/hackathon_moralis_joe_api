@@ -10,7 +10,7 @@ priceavax:
       - "application/json"
     responses:
       200:
-        description: "Price of token (derived in AVAX), as an integer in NanoAVAX"
+        description: "Price of token (derived in AVAX) in NanoAVAX"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -28,7 +28,7 @@ priceusd:
       - "application/json"
     responses:
       200:
-        description: "Price of token in USD, as an integer in NanoAVAX"
+        description: "Price of token in USD in NanoAVAX"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -54,6 +54,6 @@ definitions:
         enum:
           - "success"
       result:
-        type: "integer"
+        type: "string"
         enum:
-          - 10.00
+          - "10.00"

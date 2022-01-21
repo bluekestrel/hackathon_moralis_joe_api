@@ -10,7 +10,7 @@ liquidity:
       - "application/json"
     responses:
       200:
-        description: "TVL as an integer"
+        description: "TVL"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -28,7 +28,7 @@ volume:
       - "application/json"
     responses:
       200:
-        description: "Transaction volume as an integer"
+        description: "Transaction volume"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -46,7 +46,7 @@ fees:
       - "application/json"
     responses:
       200:
-        description: "Transaction fees as an integer"
+        description: "Transaction fees"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -64,7 +64,7 @@ APR:
       - "application/json"
     responses:
       200:
-        description: "APR as a percent integer"
+        description: "APR as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -83,9 +83,9 @@ definitions:
         enum:
           - "success"
       result:
-        type: "integer"
+        type: "string"
         enum:
-          - 10.00
+          - "10.00"
   tokenParam:
     - in: path
       name: lpToken

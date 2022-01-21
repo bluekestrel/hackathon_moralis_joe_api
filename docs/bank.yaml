@@ -24,7 +24,7 @@ supply:
       - "application/json"
     responses:
       200:
-        description: "Total supply value as an integer"
+        description: "Total supply value"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -40,7 +40,7 @@ borrow:
       - "application/json"
     responses:
       200:
-        description: "Total borrow value as an integer"
+        description: "Total borrow value"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -58,7 +58,7 @@ depositAPY:
       - "application/json"
     responses:
       200:
-        description: "APY as a percent integer"
+        description: "APY as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -76,7 +76,7 @@ depositRewardsAPR:
       - "application/json"
     responses:
       200:
-        description: "APR as a percent integer"
+        description: "APR as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -94,7 +94,7 @@ borrowAPY:
       - "application/json"
     responses:
       200:
-        description: "APY as a percent integer"
+        description: "APY as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -112,7 +112,7 @@ borrowRewardsAPR:
       - "application/json"
     responses:
       200:
-        description: "APR as a percent integer"
+        description: "APR as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -138,9 +138,9 @@ definitions:
         enum:
           - "success"
       result:
-        type: "integer"
+        type: "string"
         enum:
-          - 10.00
+          - "10.00"
   AddressListResult:
     type: "array"
     items:

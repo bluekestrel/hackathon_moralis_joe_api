@@ -26,7 +26,7 @@ liquidity:
       - "application/json"
     responses:
       200:
-        description: "TVL as an integer"
+        description: "TVL"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -44,7 +44,7 @@ poolweight:
       - "application/json"
     responses:
       200:
-        description: "Pool weight as an integer"
+        description: "Pool weight"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -62,7 +62,7 @@ APR:
       - "application/json"
     responses:
       200:
-        description: "APR as a percent integer"
+        description: "APR as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -80,7 +80,7 @@ bonusAPR:
       - "application/json"
     responses:
       200:
-        description: "Bonus APR as a percent integer"
+        description: "Bonus APR as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -99,9 +99,9 @@ definitions:
         enum:
           - "success"
       result:
-        type: "integer"
+        type: "string"
         enum:
-          - 10.00
+          - "10.00"
   ListResult:
     type: "object"
     properties:

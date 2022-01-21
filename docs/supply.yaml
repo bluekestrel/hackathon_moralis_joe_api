@@ -8,7 +8,7 @@ circulating:
       - "application/json"
     responses:
       200:
-        description: "Number of circulating JOE tokens, as an integer in NanoAVAX"
+        description: "Number of circulating JOE tokens in NanoAVAX"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -24,7 +24,7 @@ circulating-adjusted:
       - "application/json"
     responses:
       200:
-        description: "Number of circulating JOE tokens as an integer"
+        description: "Number of circulating JOE tokens"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -40,7 +40,7 @@ total:
       - "application/json"
     responses:
       200:
-        description: "Total supply of JOE tokens, as an integer in NanoAVAX"
+        description: "Total supply of JOE tokens in NanoAVAX"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -56,7 +56,7 @@ max:
       - "application/json"
     responses:
       200:
-        description: "Max supply of JOE tokens, as an integer in NanoAVAX"
+        description: "Max supply of JOE tokens in NanoAVAX"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -75,6 +75,6 @@ definitions:
         enum:
           - "success"
       result:
-        type: "integer"
+        type: "string"
         enum:
-          - 10.00
+          - "10.00"

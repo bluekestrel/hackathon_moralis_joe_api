@@ -24,7 +24,7 @@ APR:
       - "application/json"
     responses:
       200:
-        description: "APR as a percent integer"
+        description: "APR as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -40,7 +40,7 @@ APY:
       - "application/json"
     responses:
       200:
-        description: "APY as a percent integer"
+        description: "APY as a percent"
         schema:
           $ref: "#/definitions/Result"
       500:
@@ -59,6 +59,6 @@ definitions:
         enum:
           - "success"
       result:
-        type: "integer"
+        type: "string"
         enum:
-          - 10.00
+          - "10.00"
