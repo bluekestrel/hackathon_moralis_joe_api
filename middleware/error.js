@@ -4,6 +4,7 @@ async function error(ctx, next) {
   try {
     await next();
   } catch (err) {
+    console.error(err);
     ctx.type = 'json';
     ctx.status = err.statusCode || err.status || 500;
     ctx.body = {
@@ -11,9 +12,9 @@ async function error(ctx, next) {
     };
 
     if (ctx.status == 500) {
-      ctx.body.message = "Internal Server Error";
+      ctx.body.result = "Internal Server Error";
     } else {
-      ctx.body.message = err.message;
+      ctx.body.result = err.message;
     }
   }
 }

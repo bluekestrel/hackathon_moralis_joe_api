@@ -18,7 +18,15 @@ function calculateAPYSecondsCompund(percentAPR) {
   return APY.times(100);
 }
 
+function formatResults(status, result) {
+  return {
+    status,
+    result,
+  };
+}
+
 module.exports = {
   calculateAPYDailyCompund,
   calculateAPYSecondsCompund,
+  formatResults,
 };

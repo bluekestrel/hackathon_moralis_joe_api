@@ -70,6 +70,10 @@ definitions:
   Result:
     type: "object"
     properties:
+      status:
+        type: "string"
+        enum:
+          - "success"
       result:
         type: "integer"
         enum:

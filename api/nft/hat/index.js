@@ -1,4 +1,5 @@
 'use strict';
+const { formatResults } = require("../../../utils/helperFunctions");
 
 function getInfos(ctx) {
     if (!("id" in ctx.params))
@@ -15,7 +16,7 @@ function getInfos(ctx) {
 }
 
 function infos(ctx) {
-    ctx.body = getInfos(ctx)
+    ctx.body = formatResults("success", getInfos(ctx));
 }
 
 module.exports = {infos};

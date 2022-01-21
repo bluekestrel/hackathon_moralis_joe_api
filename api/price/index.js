@@ -1,4 +1,5 @@
 "use strict";
+
 const {
   AVAX_CHAIN_ID,
   BN_1E18,
@@ -12,10 +13,12 @@ const {
   WAVAX_USDT_ADDRESS,
   ZERO_ADDRESS, JOE_ADDRESS, XJOE_ADDRESS,
 } = require("../../constants");
+
 const { web3Factory } = require("../../utils/web3");
 const BigNumber = require("bignumber.js");
 const tokenList = require("../../utils/tokenList.json");
 const web3 = web3Factory(AVAX_CHAIN_ID);
+const { formatResults } = require("../../utils/helperFunctions");
 
 // abis
 const ERC20ContractABI = require("../../abis/ERC20ContractABI.json");
@@ -240,11 +243,11 @@ async function logics(ctx, derived) {
 
       derived
         ? tokenAddress === WAVAX_ADDRESS
-          ? (ctx.body = BN_1E18.toString())
-          : (ctx.body = (await getPrice(tokenAddress, derived)).toString())
-        : (ctx.body = (await getPrice(tokenAddress, derived)).toString());
+          ? (ctx.body = formatResults("success", BN_1E18.toString()))
+          : (ctx.body = formatResults("success", (await getPrice(tokenAddress, derived)).toString()))
+        : (ctx.body = formatResults("success", (await getPrice(tokenAddress, derived)).toString()));
     } catch (e) {
-      ctx.body = e.toString();
+      ctx.body = formatResults("error", e.toString());
     }
   }
 }

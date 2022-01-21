@@ -5,6 +5,7 @@ const BigNumber = require("bignumber.js");
 const { web3Factory } = require("../../utils/web3");
 const { getPrice } = require("../price/index");
 const { calculateAPYDailyCompund } = require("../../utils/helperFunctions");
+const { formatResults } = require("../../utils/helperFunctions");
 
 // import necessary contract ABIs
 const ERC20ABI = require("../../abis/ERC20ContractABI.json");
@@ -121,6 +122,12 @@ class Cache {
   }
 
   async calculate24HourFees() {
+    // all the rewards for trading fees 'go' to the MakerJoe contract; the MakerJoe contract
+    // appears to claim these fees and convert the various LP tokens to JOE on a daily basis, so
+    // we can use this to approximate the total value (in USD) earned by all trading fees for
+    // a day -> when converting the LP tokens into AVAX to buy JOE tokens, an event called LogConvert
+    // is emitted, which we'll use to figure out the total value (in USD) of the fees for the last
+    // 24 hour period
     const currTime = Date.now();
     const startTime = new Date(currTime - this.dayInMs);
     const endTime = new Date(currTime);
@@ -212,15 +219,15 @@ class Cache {
 }
 
 async function getTotalFees(ctx) {
-  ctx.body = (await cache.getTotalFees());
+  ctx.body = formatResults("success", (await cache.getTotalFees()));
 }
 
 async function getAPR(ctx) {
-  ctx.body = (await cache.calculateAPR());
+  ctx.body = formatResults("success", (await cache.calculateAPR()));
 }
 
 async function getAPY(ctx) {
-  ctx.body = (await cache.calculateAPY());
+  ctx.body = formatResults("success", (await cache.calculateAPY()));
 }
 
 const cache = new Cache();

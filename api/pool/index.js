@@ -4,6 +4,7 @@ const axios = require("axios");
 const BigNumber = require("bignumber.js");
 const { web3Factory } = require("../../utils/web3");
 const { getPrice } = require("../price/index");
+const { formatResults } = require("../../utils/helperFunctions");
 
 // import necessary contract ABIs
 const ERC20ABI = require("../../abis/ERC20ContractABI.json");
@@ -248,7 +249,7 @@ class Cache {
 
   async getTransactionHistory(lpTokenAddress) {
     const isLPToken = await this.verifyLPToken(lpTokenAddress);
-    if (!isLPToken) { return "Token Address passed in is not an LP Token" };
+    if (!isLPToken) { return formatResults("error", "Token Address passed in is not an LP Token") };
 
     lpTokenAddress = lpTokenAddress.toLowerCase();
     if (!(this.pools[lpTokenAddress])) {
@@ -266,16 +267,16 @@ class Cache {
       total24HourVolume = total24HourVolume.plus(hour);
     });
 
-    return total24HourVolume.decimalPlaces(4);
+    return formatResults("success", total24HourVolume.decimalPlaces(4));
   }
 
   async getTransactionFees(lpTokenAddress) {
     const isLPToken = await this.verifyLPToken(lpTokenAddress);
-    if (!isLPToken) { return "Token Address passed in is not an LP Token" };
+    if (!isLPToken) { return formatResults("error", "Token Address passed in is not an LP Token") };
 
-    const transactionVolume = await this.getTransactionHistory(lpTokenAddress);
+    const { result: transactionVolume } = await this.getTransactionHistory(lpTokenAddress);
     const fees = transactionVolume.times(FEES_PERCENT);
-    return fees.decimalPlaces(4);
+    return formatResults("success", fees.decimalPlaces(4));
   }
 
   async getTVLByToken(lpTokenAddress) {
@@ -283,7 +284,7 @@ class Cache {
     try {
       lpTokenContract = new web3.eth.Contract(JoePairABI, lpTokenAddress);
     } catch {
-      return "Address passed in is not an LP token";
+      return formatResults("error", "Token Address passed in is not an LP Token")
     }
 
     // optimistically attempt to retrieve the two tokens from the lp token contract
@@ -293,7 +294,7 @@ class Cache {
     ]);
 
     if (results[0].status === "rejected" || results[1].status === "rejected") {
-      return "Address passed in is not an LP token";
+      return formatResults("error", "Token Address passed in is not an LP Token")
     }
 
     // pull the token addresses out of the promise result array
@@ -343,17 +344,18 @@ class Cache {
     // calculate TVL
     const tvlToken0 = (new BigNumber(token0Price)).times(balanceToken0);
     const tvlToken1 = (new BigNumber(token1Price)).times(balanceToken1);
-    return tvlToken0.plus(tvlToken1).decimalPlaces(2);
+    return formatResults("success", tvlToken0.plus(tvlToken1).decimalPlaces(2));
   }
 
   async getPoolAPR(lpTokenAddress) {
     const isLPToken = await this.verifyLPToken(lpTokenAddress);
-    if (!isLPToken) { return "Token Address passed in is not an LP Token" };
+    if (!isLPToken) { return formatResults("error", "Token Address passed in is not an LP Token") };
 
-    const transactionFees = await this.getTransactionFees(lpTokenAddress);
-    const tokenTVL = await this.getTVLByToken(lpTokenAddress);
+    const { result: transactionFees } = await this.getTransactionFees(lpTokenAddress);
+    const { result: tokenTVL } = await this.getTVLByToken(lpTokenAddress);
+
     const APR = transactionFees.times(DAYS_PER_YEAR).div(tokenTVL).times(100);
-    return APR.decimalPlaces(4);
+    return formatResults("success", APR.decimalPlaces(4));
   }
 }
 

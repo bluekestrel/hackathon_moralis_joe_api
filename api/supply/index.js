@@ -7,9 +7,11 @@ const {
   JOE_ADDRESS,
   TEAM_TREASURY_WALLETS,
 } = require("../../constants");
+
 const { web3Factory } = require("../../utils/web3");
 const BigNumber = require("bignumber.js");
 const JoeContractABI = require("../../abis/JoeTokenContractABI.json");
+const { formatResults } = require("../../utils/helperFunctions");
 
 const web3 = web3Factory(AVAX_CHAIN_ID);
 const joeContract = new web3.eth.Contract(JoeContractABI, JOE_ADDRESS);
@@ -84,19 +86,19 @@ async function getBalanceOf(address) {
 }
 
 async function circulatingSupply(ctx) {
-  ctx.body = (await cache.getCirculatingSupply()).toString();
+  ctx.body = formatResults("success", (await cache.getCirculatingSupply()).toString());
 }
 
 async function circulatingSupplyAdjusted(ctx) {
-  ctx.body = (await cache.getCirculatingSupply()).div(BN_1E18).toString();
+  ctx.body = formatResults("success", (await cache.getCirculatingSupply()).div(BN_1E18).toString());
 }
 
 async function maxSupply(ctx) {
-  ctx.body = (await cache.getMaxSupply()).toString();
+  ctx.body = formatResults("success", (await cache.getMaxSupply()).toString());
 }
 
 async function totalSupply(ctx) {
-  ctx.body = (await cache.getTotalSupply()).toString();
+  ctx.body = formatResults("success", (await cache.getTotalSupply()).toString());
 }
 
 const cache = new Cache();

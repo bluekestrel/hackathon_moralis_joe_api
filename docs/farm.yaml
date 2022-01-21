@@ -94,6 +94,10 @@ definitions:
   Result:
     type: "object"
     properties:
+      status:
+        type: "string"
+        enum:
+          - "success"
       result:
         type: "integer"
         enum:
@@ -101,32 +105,39 @@ definitions:
   ListResult:
     type: "object"
     properties:
-      "0xd6a4F121CA35509aF06A0Be99093d08462f53052":
-          type: "array"
-          items:
-            type: "object"
-            properties:
-              token:
-                type: "string"
-                enum:
-                  - "0x781655d802670bbA3c89aeBaaEa59D3182fD755D"
-              pid:
-                type: "integer"
-                enum:
-                  - 43
-      "0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00":
-          type: "array"
-          items:
-            type: "object"
-            properties:
-              token:
-                type: "string"
-                enum:
-                  - "0x9155f441FFDfA81b13E385bfAc6b3825C05184Ee"
-              pid:
-                type: "integer"
-                enum:
-                  - 36
+      status:
+        type: "string"
+        enum:
+          - "success"
+      result:
+        type: "object"
+        properties:
+          "0xd6a4F121CA35509aF06A0Be99093d08462f53052":
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  token:
+                    type: "string"
+                    enum:
+                      - "0x781655d802670bbA3c89aeBaaEa59D3182fD755D"
+                  pid:
+                    type: "integer"
+                    enum:
+                      - 43
+          "0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00":
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  token:
+                    type: "string"
+                    enum:
+                      - "0x9155f441FFDfA81b13E385bfAc6b3825C05184Ee"
+                  pid:
+                    type: "integer"
+                    enum:
+                      - 36
   tokenParam:
     - in: path
       name: lpToken

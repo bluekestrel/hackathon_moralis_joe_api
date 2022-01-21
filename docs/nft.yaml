@@ -31,7 +31,9 @@ definitions:
   Result:
     type: "object"
     properties:
-      result:
-        type: "integer"
+      status:
+        type: "string"
         enum:
-          - 10.00
+          - "success"
+      result:
+        type: "object"

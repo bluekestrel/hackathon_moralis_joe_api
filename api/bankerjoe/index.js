@@ -3,6 +3,7 @@
 const BigNumber = require("bignumber.js");
 const { web3Factory } = require("../../utils/web3");
 const { getPrice } = require("../price/index");
+const { formatResults } = require("../../utils/helperFunctions");
 
 // import necessary contract ABIs
 const TotalSupplyAndBorrowABI = require("../../abis/TotalSupplyAndBorrowABI.json");
@@ -97,23 +98,23 @@ class Cache {
 
   async getTotalSupply() {
     await this.reloadTotal();
-    return this.cachedTotal.supply;
+    return formatResults("success", this.cachedTotal.supply.toString());
   }
 
   async getTotalBorrow() {
     await this.reloadTotal();
-    return this.cachedTotal.borrow;
+    return formatResults("success", this.cachedTotal.borrow.toString());
   }
 
   async getLendingPools() {
     await this.getLendingPoolsAddresses();
-    return this.lendingPoolsAddresses;
+    return formatResults("success", this.lendingPoolsAddresses);
   }
 
   async getSupplyRateAPY(lendingPool) {
     // if the passed-in address is not a farm then return an empty string
     const inFarm = await this.checkIfFarm(lendingPool);
-    if (!inFarm) { return "Farm does not exist for that address" } // TODO: add result object to ctx which contains an error message if one exists
+    if (!inFarm) { return formatResults("failure", "Farm does not exist for that address") }
 
     const jtoken = new web3.eth.Contract(JTokenABI, lendingPool);
     const result = await jtoken.methods
@@ -130,12 +131,12 @@ class Cache {
       .pow(DAYS_PER_YEAR)
       .minus(BN_1)
       .times(new BigNumber(100));
-    return supplyRateAPY.decimalPlaces(2);
+    return formatResults("success", supplyRateAPY.decimalPlaces(2));
   }
 
   async getSupplyRewardsAPR(lendingPool) {
     const inFarm = await this.checkIfFarm(lendingPool);
-    if (!inFarm) { return "Farm does not exist for that address" } // TODO: add result object to ctx which contains an error message if one exists
+    if (!inFarm) { return formatResults("failure", "Farm does not exist for that address") }
 
     // get the reward supply per second
     let result = await RewardDistributor.methods.rewardSupplySpeeds(0, lendingPool).call();
@@ -165,13 +166,13 @@ class Cache {
     // calculate the supply rewards APR
     const supplyRewardsAPR = numerator.div(denominator)
       .times(new BigNumber(100));
-    return supplyRewardsAPR.decimalPlaces(2);
+    return formatResults("success", supplyRewardsAPR.decimalPlaces(2));
   }
 
   async getBorrowRateAPY(lendingPool) {
     // if the passed-in address is not a farm then return an empty string
     const inFarm = await this.checkIfFarm(lendingPool);
-    if (!inFarm) { return "Farm does not exist for that address" } // TODO: add result object to ctx which contains an error message if one exists
+    if (!inFarm) { return formatResults("failure", "Farm does not exist for that address") }
 
     const jtoken = new web3.eth.Contract(JTokenABI, lendingPool);
     const result = await jtoken.methods
@@ -188,12 +189,12 @@ class Cache {
       .pow(DAYS_PER_YEAR)
       .minus(BN_1)
       .times(new BigNumber(100));
-    return borrowRateAPY.decimalPlaces(2);
+    return formatResults("success", borrowRateAPY.decimalPlaces(2));
   }
 
   async getBorrowRewardsAPR(lendingPool) {
     const inFarm = await this.checkIfFarm(lendingPool);
-    if (!inFarm) { return "Farm does not exist for that address" } // TODO: add result object to ctx which contains an error message if one exists
+    if (!inFarm) { return formatResults("failure", "Farm does not exist for that address") }
 
     // get the reward borrow per second
     let result = await RewardDistributor.methods.rewardBorrowSpeeds(0, lendingPool).call();
@@ -221,16 +222,16 @@ class Cache {
     // calculate the supply rewards APR
     const borrowRewardsAPR = numerator.div(denominator)
       .times(new BigNumber(100));
-    return borrowRewardsAPR.decimalPlaces(2);
+    return formatResults("success", borrowRewardsAPR.decimalPlaces(2));
   }
 }
 
 async function totalSupply(ctx) {
-  ctx.body = (await cache.getTotalSupply()).toString();
+  ctx.body = (await cache.getTotalSupply());
 }
 
 async function totalBorrow(ctx) {
-  ctx.body = (await cache.getTotalBorrow()).toString();
+  ctx.body = (await cache.getTotalBorrow());
 }
 
 async function getLendingPools(ctx) {

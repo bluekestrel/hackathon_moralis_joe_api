@@ -4,6 +4,7 @@ const BigNumber = require("bignumber.js");
 const { web3Factory } = require("../../utils/web3");
 const { TVLHelper } = require("../pool/index");
 const { getPrice } = require("../price/index");
+const { formatResults } = require("../../utils/helperFunctions");
 
 // import necessary contract ABIs
 const JoePairABI = require("../../abis/JoePairABI.json");
@@ -115,7 +116,7 @@ class Cache {
       });
     });
 
-    return list;
+    return formatResults("success", list);
   }
 
   async findPool(address) {
@@ -159,11 +160,14 @@ class Cache {
     );
 
     // get the TVL of the overal pool
-    let result = await TVLHelper(poolAddress);
-    const poolTVL = new BigNumber(result.toString());
+    const value = await TVLHelper(poolAddress);
+    if (value.status === "error") {
+      return value;
+    }
+    const poolTVL = new BigNumber(value.result.toString());
 
     // get the number of decimals for the LP token
-    result = await joePairContract.methods.decimals().call();
+    let result = await joePairContract.methods.decimals().call();
     const lpDecimals = new BigNumber(result.toString());
 
     // get the number of LP tokens that the AMM contract holds
@@ -194,10 +198,11 @@ class Cache {
     try {
       ({ list, contract, version } = await this.findPool(poolAddress));
     } catch {
-      return "Pool is not an active yield farm"
+      return formatResults("error", "Pool is not an active yield farm");
     }
 
-    return await this.calculateFarmLiquidity(poolAddress, list, contract, version);
+    const result = await this.calculateFarmLiquidity(poolAddress, list, contract, version);
+    return formatResults("success", result);
   }
 
   async getFarmBonusAPR(poolAddress) {
@@ -208,7 +213,7 @@ class Cache {
     try {
       ({ list, contract, version } = await this.findPool(poolAddress));
     } catch {
-      return "Pool is not an active yield farm"
+      return formatResults("error", "Pool is not an active yield farm");
     }
 
     // check to make sure farm requested is receiving bonus tokens
@@ -253,7 +258,7 @@ class Cache {
     list[poolAddress].bonusAPR = bonusAPR;
     list[poolAddress].lastUpdatedBonusAPR = Date.now();
 
-    return bonusAPR;
+    return formatResults("success", bonusAPR);
   }
 
   async calculateAPR(poolAddress, poolsList, contract, version) {
@@ -310,7 +315,7 @@ class Cache {
     try {
       ({ list, contract, version } = await this.findPool(poolAddress));
     } catch {
-      return "Pool is not an active yield farm"
+      return formatResults("error", "Pool is not an active yield farm");
     }
 
     let poolAPR;
@@ -324,7 +329,7 @@ class Cache {
       poolAPR = list[poolAddress].APR;
     }
 
-    return poolAPR;
+    return formatResults("success", poolAPR);
   }
 
   async getPoolWeight(poolAddress) {
@@ -335,12 +340,12 @@ class Cache {
     try {
       ({ list, contract } = await this.findPool(poolAddress));
     } catch {
-      return "Pool is not an active yield farm"
+      return formatResults("error", "Pool is not an active yield farm");
     }
 
     const { allocPoint } =  await contract.methods.poolInfo(list[poolAddress].pid).call();
     const poolWeight = (new BigNumber(allocPoint)).div(100);
-    return poolWeight;
+    return formatResults("success", poolWeight);
   }
 }
 
